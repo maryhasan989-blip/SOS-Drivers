@@ -1,0 +1,2822 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>قرى الأطفال SOS | سجل رحلات السائقين</title>
+  
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0072bc">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="قرى الأطفال SOS">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="shortcut icon" href="favicon.png">
+
+  <!-- Local Offline-First Vendor Libraries (100% تعمل محلياً بدون إنترنت نهائياً) -->
+  <script src="./libs/tailwind.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            sos: {
+              50: '#fff1f2',
+              100: '#ffe4e6',
+              500: '#f43f5e',
+              600: '#e11d48',
+              700: '#be123c',
+              800: '#9f1239',
+              900: '#881337',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons (Local Offline) -->
+  <script src="./libs/lucide.min.js"></script>
+
+  <!-- Chart.js (Local Offline) -->
+  <script src="./libs/chart.min.js"></script>
+
+  <!-- SheetJS (XLSX Export - Local Offline) -->
+  <script src="./libs/xlsx.full.min.js"></script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css?v=4.0">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-[#0072bc] selection:text-white">
+
+  <!-- ========================================== -->
+  <!-- 1. شاشة تسجيل الدخول (LOGIN SCREEN)       -->
+  <!-- ========================================== -->
+  <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-950 via-slate-900 to-[#0072bc]/20 relative overflow-hidden">
+    <!-- Ambient Glow Circles -->
+    <div class="absolute -top-32 -right-32 w-96 h-96 bg-[#0072bc]/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="glass-card w-full max-w-md rounded-3xl border border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 relative z-10">
+      
+      <!-- SOS Header Branding with Official Logo -->
+      <div class="text-center space-y-3">
+        <div class="inline-flex items-center justify-center p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md shadow-xl max-w-[240px] mx-auto">
+          <img src="logo.webp" alt="قرى الأطفال SOS" class="h-12 sm:h-14 w-auto object-contain drop-shadow">
+        </div>
+        <div>
+          <div class="inline-block px-3 py-1 rounded-full bg-[#0072bc]/20 border border-[#0072bc]/40 text-sky-300 text-xs font-black tracking-wider uppercase mb-1">
+            SOS Children's Villages
+          </div>
+          <h1 class="text-2xl font-black text-white tracking-tight">قرى الأطفال SOS للسائقين</h1>
+          <p class="text-xs text-slate-400 mt-1">منظومة تسجيل وتوثيق رحلات الأسطول والمشاريع</p>
+        </div>
+      </div>
+
+      <!-- Clean Login Form (No Passwords Exposed) -->
+      <form id="loginForm" onsubmit="handleLoginSubmit(event)" class="space-y-4">
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">اسم المستخدم أو رقم الهاتف</label>
+          <div class="relative">
+            <input type="text" id="loginUsername" required autocomplete="username" placeholder="أدخل اسم المستخدم أو هاتفك..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 pr-10 focus:border-[#0072bc]">
+            <i data-lucide="user" class="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5"></i>
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">كلمة المرور</label>
+          <div class="relative">
+            <input type="password" id="loginPassword" required autocomplete="current-password" placeholder="أدخل كلمة المرور..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 pr-10 pl-10 focus:border-[#0072bc] font-mono-numbers">
+            <i data-lucide="lock" class="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5"></i>
+            <button type="button" onclick="togglePasswordVisibility('loginPassword', 'loginEyeBtn')" id="loginEyeBtn" class="absolute left-3.5 top-3.5 text-slate-400 hover:text-white" title="إظهار / إخفاء كلمة المرور">
+              <i data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-xs pt-1">
+          <label class="flex items-center gap-1.5 text-slate-400 cursor-pointer select-none">
+            <input type="checkbox" id="rememberMe" checked class="rounded bg-slate-800 border-slate-700 text-[#0072bc]">
+            <span>تذكر بيانات الدخول</span>
+          </label>
+          <button type="button" onclick="openForgotPasswordModal()" class="text-sky-400 hover:text-sky-300 font-semibold underline">
+            نسيت كلمة المرور؟
+          </button>
+        </div>
+
+        <div id="loginErrorAlert" class="p-3 rounded-xl bg-rose-950/80 border border-rose-800/80 text-rose-200 text-xs hidden"></div>
+
+        <button type="submit" id="loginSubmitBtn" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#0072bc] to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-bold text-sm shadow-xl shadow-[#0072bc]/40 flex items-center justify-center gap-2 transition-all transform active:scale-98">
+          <i data-lucide="log-in" class="w-5 h-5"></i>
+          <span>تسجيل الدخول</span>
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 2. واجهة التطبيق الرئيسية بعد الدخول        -->
+  <!-- ========================================== -->
+  <div id="authenticatedApp" class="hidden min-h-screen flex flex-col">
+
+    <!-- Top Navigation Bar -->
+    <header class="glass-nav sticky top-0 z-30 px-4 py-3 flex items-center justify-between shadow-lg">
+      <div class="flex items-center gap-3">
+        <div class="h-10 px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shadow-md">
+          <img src="logo.webp" alt="قرى الأطفال SOS" class="h-7 w-auto object-contain">
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
+            <span>قرى الأطفال SOS</span>
+            <span id="headerRoleBadge" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">سجل السائقين</span>
+          </h1>
+          <p class="text-[11px] text-slate-400 hidden sm:block">يونيسف • DRA • FS • HA • إداري</p>
+        </div>
+      </div>
+
+      <!-- User Actions (Notifications & Logout) -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Notification Center Bell -->
+        <div class="relative" id="notificationCenterContainer">
+          <button type="button" id="notificationBellBtn" onclick="toggleNotificationPanel()" class="relative p-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 hover:text-white transition-colors flex items-center justify-center" title="مركز الإشعارات والرقابة">
+            <i data-lucide="bell" class="w-4 h-4 text-amber-400"></i>
+            <span id="unreadNotificationsBadge" class="hidden absolute -top-1 -right-1 bg-rose-500 text-white font-bold rounded-full min-w-[18px] h-[18px] px-1 text-[10px] flex items-center justify-center font-mono-numbers shadow-lg shadow-rose-950/60 animate-pulse">0</span>
+          </button>
+
+          <!-- Floating Notification Dropdown Panel -->
+          <div id="notificationDropdownPanel" class="hidden absolute left-0 sm:left-auto sm:right-0 mt-2 w-80 sm:w-96 bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl z-50 overflow-hidden backdrop-blur-md">
+            <div class="p-3.5 bg-slate-950/90 border-b border-slate-800 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <i data-lucide="bell-ring" class="w-4 h-4 text-amber-400"></i>
+                <span class="font-bold text-white text-xs">الإشعارات وسجل النشاطات</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button type="button" id="soundToggleBtn" onclick="toggleNotificationSound()" class="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-amber-300 text-xs transition-colors" title="تشغيل / كتم صوت الإشعار">
+                  <i data-lucide="volume-2" class="w-3.5 h-3.5" id="soundToggleIcon"></i>
+                </button>
+                <button type="button" onclick="markAllNotificationsAsRead()" class="text-[11px] text-sky-400 hover:text-sky-300 font-bold hover:underline">
+                  تحديد كمقروء
+                </button>
+              </div>
+            </div>
+
+            <!-- List of recent notifications -->
+            <div id="recentNotificationsList" class="max-h-80 overflow-y-auto divide-y divide-slate-800/60 p-1">
+              <!-- Dynamically populated -->
+            </div>
+
+            <div class="p-2.5 bg-slate-950/90 border-t border-slate-800 flex items-center justify-between text-xs">
+              <button type="button" onclick="openAuditLogsModal(); toggleNotificationPanel(false);" class="w-full py-2 px-3 rounded-xl bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 hover:text-blue-200 border border-blue-500/30 font-bold flex items-center justify-center gap-2 transition-all">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5 text-blue-400"></i>
+                <span>فتح سجل الرقابة والحركات الكامل 📜</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Logout Button -->
+        <button onclick="handleLogout()" class="px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center gap-1.5 transition-colors" title="تسجيل الخروج">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">خروج</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- User Profile Bar -->
+    <div id="driverProfileBar" class="bg-slate-900/70 border-b border-slate-800/80 px-4 py-2.5 text-xs flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-1.5 text-slate-300">
+          <i data-lucide="user" class="w-4 h-4 text-rose-400"></i>
+          <span>المستخدم:</span>
+          <span class="font-bold text-white" id="currentDriverLabel">-</span>
+          <span id="userRoleBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">سائق</span>
+        </div>
+        <div class="flex items-center gap-1.5 text-slate-300" id="vehicleBarItem">
+          <i data-lucide="car" class="w-4 h-4 text-cyan-400"></i>
+          <span>المركبة:</span>
+          <span class="font-bold text-white font-mono-numbers" id="currentVehicleLabel">-</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span id="syncStatusBadgeContainer" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-950/60 text-emerald-400 border border-emerald-800/50">
+          <span id="syncStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
+          <span id="syncStatusLabel">متصل بالسيرفر المركزي</span>
+          <span id="pendingQueueBadge" class="hidden bg-amber-500 text-slate-950 font-black px-1.5 py-0.2 rounded-full text-[10px] font-mono-numbers">0</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Admin Master Control Switcher (تحكم المشرف العام الكامل بكل الأقسام) -->
+    <div id="adminMasterNav" class="hidden bg-slate-950 border-b border-amber-500/30 px-4 py-2 text-xs flex flex-wrap items-center justify-between gap-2 shadow-inner">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-amber-400 font-bold flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs">
+          <i data-lucide="shield-check" class="w-4 h-4 text-amber-400"></i>
+          <span>تحكم المشرف العام الكامل:</span>
+        </span>
+        <div class="flex flex-wrap items-center gap-1.5">
+          <button type="button" id="adminNavTripsBtn" onclick="switchToAdminModule('trips')" class="px-3 py-1.5 rounded-xl bg-blue-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all">
+            <i data-lucide="car" class="w-3.5 h-3.5"></i>
+            <span>الرحلات ومتابعة السائقين</span>
+          </button>
+          <button type="button" id="adminNavProcurementBtn" onclick="switchToAdminModule('procurement')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs flex items-center gap-1.5 transition-all">
+            <i data-lucide="shopping-cart" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>المشتريات وجرد الأسطول 🛒</span>
+          </button>
+          <button type="button" id="adminNavFuelBtn" onclick="switchToAdminModule('fuel')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs flex items-center gap-1.5 transition-all">
+            <i data-lucide="fuel" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span>سجل وتعبئات السولار ⛽</span>
+          </button>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="openAuditLogsModal()" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs flex items-center gap-1.5 border border-amber-500/30 transition-all" title="فتح سجل الرقابة والحركات الشامل">
+          <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span>سجل الرقابة والحركات 📜</span>
+        </button>
+        <button type="button" onclick="openAdminUsersModal()" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold text-xs flex items-center gap-1.5 border border-slate-700 transition-all">
+          <i data-lucide="users-cog" class="w-3.5 h-3.5"></i>
+          <span>إدارة المستخدمين والصلاحيات 👥</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Offline & Auto-Relay Banner (شريط الترحيل التلقائي عند شبك النت) -->
+    <div id="offlineSyncBanner" class="hidden px-4 py-2.5 bg-gradient-to-r from-amber-950/90 via-slate-900 to-amber-950/90 border-b border-amber-500/40 text-xs flex flex-wrap items-center justify-between gap-2 text-amber-200 shadow-md">
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30">
+          <i data-lucide="cloud-off" id="offlineSyncIcon" class="w-4 h-4"></i>
+        </div>
+        <div id="offlineSyncMessage">
+          <span>وضع العمل بدون إنترنت: لديك <strong id="pendingSyncCount" class="text-white font-mono-numbers px-1.5 py-0.5 bg-amber-500/20 rounded border border-amber-500/40">0</strong> عمليات محفوظة محلياً، وسيتم ترحيلها تلقائياً فور شبك النت.</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="triggerManualSync()" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all transform active:scale-95">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5" id="syncNowIcon"></i>
+          <span>ترحيل البيانات الآن 🚀</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
+
+      <!-- ======================================================= -->
+      <!-- VIEW 1: DRIVER MODE (خاص بالسائقين فقط)                 -->
+      <!-- ======================================================= -->
+      <div id="driverView" class="hidden space-y-6">
+
+        <!-- Notification Permission Request Banner (if not granted) -->
+        <div id="notificationPermissionPrompt" class="hidden glass-card p-3 sm:p-4 rounded-2xl border border-rose-500/40 bg-rose-950/30 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
+              <i data-lucide="bell-ring" class="w-5 h-5 animate-bounce"></i>
+            </div>
+            <div>
+              <h5 class="text-xs sm:text-sm font-bold text-white">تفعيل إشعارات الحجوزات والتكليفات الخارجية</h5>
+              <p class="text-[11px] text-slate-300">لتصلك تنبيهات الرحلات الجديدة حتى لو كان المتصفح أو التطبيق في الخلفية</p>
+            </div>
+          </div>
+          <button onclick="requestNotificationPermission(true)" class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shrink-0 transition-colors">
+            تفعيل الإشعارات 🔔
+          </button>
+        </div>
+
+        <!-- Dispatched Bookings / Incoming Reservations Container -->
+        <div id="driverPendingDispatchContainer" class="hidden space-y-3"></div>
+
+        <!-- Active In-Progress Trip Alert Card -->
+        <div id="activeTripContainer" class="hidden">
+          <div class="glass-card rounded-2xl p-5 border-2 border-emerald-500/50 shadow-xl shadow-emerald-950/30 bg-gradient-to-r from-emerald-950/40 via-slate-900/90 to-slate-900/90 relative overflow-hidden">
+            <div class="absolute -top-10 -left-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b border-emerald-800/30 pb-4 mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                  <i data-lucide="navigation-2" class="w-6 h-6 animate-pulse"></i>
+                </div>
+                <div>
+                  <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">رحلة جارية الآن</span>
+                  <h3 class="text-lg font-bold text-white mt-1" id="activeTripTeamTitle">فريق يونيسف (UNICEF)</h3>
+                </div>
+              </div>
+              <!-- Live Duration Counter -->
+              <div class="text-left bg-slate-950/70 px-4 py-2 rounded-xl border border-slate-800">
+                <span class="text-xs text-slate-400 block">مدة الرحلة</span>
+                <span id="activeTripTimer" class="font-mono-numbers text-lg font-bold text-emerald-400">00:00:00</span>
+              </div>
+            </div>
+
+            <!-- Trip Details Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm mb-5">
+              <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800/60">
+                <span class="text-xs text-slate-400 block mb-1">الوجهة / الغرض</span>
+                <span id="activeTripDestination" class="font-semibold text-slate-200">-</span>
+              </div>
+              <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800/60">
+                <span class="text-xs text-slate-400 block mb-1">عداد البداية</span>
+                <span id="activeTripStartKm" class="font-mono-numbers text-base font-bold text-rose-400">0 كم</span>
+              </div>
+              <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800/60">
+                <span class="text-xs text-slate-400 block mb-1">الركاب والمرافقين</span>
+                <div id="activeTripPassengers" class="flex flex-wrap gap-1 mt-0.5"></div>
+              </div>
+              <div class="bg-slate-950/50 p-3 rounded-xl border border-slate-800/60">
+                <span class="text-xs text-slate-400 block mb-1">تاريخ ووقت الانطلاق</span>
+                <span id="activeTripStartTime" class="text-slate-300 font-mono-numbers">-</span>
+              </div>
+            </div>
+
+            <!-- Action Button: End Trip -->
+            <button onclick="openEndTripModal()" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-base shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all transform active:scale-98">
+              <i data-lucide="check-circle" class="w-5 h-5"></i>
+              <span>الوصول وإنهاء الرحلة (تسجيل عداد النهاية والوقت)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Action: Start New Trip -->
+        <div id="noActiveTripPrompt" class="glass-card rounded-2xl p-6 sm:p-8 text-center border border-slate-800 relative overflow-hidden">
+          <div class="max-w-md mx-auto space-y-4">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-rose-600/20 border border-rose-500/30 flex items-center justify-center text-rose-400">
+              <i data-lucide="car" class="w-8 h-8"></i>
+            </div>
+            <h2 class="text-xl font-extrabold text-white">هل أنت مستعد للانطلاق في رحلة جديدة؟</h2>
+            <p class="text-sm text-slate-400">
+              سجّل المشروع (يونيسف، DRA، FS، HA، إداري)، الركاب، قراءة العداد، ووقت الانطلاق.
+            </p>
+            <button onclick="openStartTripModal()" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-bold text-base shadow-xl shadow-rose-600/30 flex items-center justify-center gap-3 transition-all transform hover:-translate-y-0.5 active:scale-95 mx-auto">
+              <i data-lucide="plus-circle" class="w-6 h-6"></i>
+              <span>تسجيل رحلة جديدة الآن</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Today's Driver Summary Stats -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+          <div class="glass-card p-4 rounded-2xl border border-slate-800/80">
+            <div class="flex items-center justify-between text-slate-400 text-xs mb-2">
+              <span>رحلاتي اليوم</span>
+              <i data-lucide="route" class="w-4 h-4 text-rose-400"></i>
+            </div>
+            <div class="text-2xl font-bold font-mono-numbers text-white" id="statTodayTrips">0</div>
+          </div>
+
+          <div class="glass-card p-4 rounded-2xl border border-slate-800/80">
+            <div class="flex items-center justify-between text-slate-400 text-xs mb-2">
+              <span>مسافة اليوم</span>
+              <i data-lucide="gauge" class="w-4 h-4 text-emerald-400"></i>
+            </div>
+            <div class="text-2xl font-bold font-mono-numbers text-emerald-400" id="statTodayKm">0 <span class="text-xs font-normal text-slate-400">كم</span></div>
+          </div>
+
+          <div class="glass-card p-4 rounded-2xl border border-slate-800/80">
+            <div class="flex items-center justify-between text-slate-400 text-xs mb-2">
+              <span>آخر قراءة للعداد</span>
+              <i data-lucide="binary" class="w-4 h-4 text-cyan-400"></i>
+            </div>
+            <div class="text-2xl font-bold font-mono-numbers text-cyan-300" id="statLastOdometer">0 <span class="text-xs font-normal text-slate-400">كم</span></div>
+          </div>
+
+          <div class="glass-card p-4 rounded-2xl border border-slate-800/80">
+            <div class="flex items-center justify-between text-slate-400 text-xs mb-2">
+              <span>مصاريف الوقود اليوم</span>
+              <i data-lucide="fuel" class="w-4 h-4 text-amber-400"></i>
+            </div>
+            <div class="text-2xl font-bold font-mono-numbers text-amber-300" id="statTodayFuel">0</div>
+          </div>
+        </div>
+
+        <!-- Recent Trips of Driver -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <i data-lucide="history" class="w-5 h-5 text-rose-400"></i>
+              <span id="tripsSectionHeader">سجل رحلاتي</span>
+            </h3>
+            <span class="text-xs text-slate-400" id="driverTripCountLabel">0 رحلة مسجلة</span>
+          </div>
+
+          <div id="driverTripsList" class="space-y-3"></div>
+        </div>
+
+      </div>
+
+      <!-- ======================================================= -->
+      <!-- VIEW 2: SUPERVISOR & FLEET DASHBOARD (لوحة الإدارة فقط) -->
+      <!-- ======================================================= -->
+      <div id="supervisorView" class="hidden space-y-6">
+
+        <!-- Supervisor KPI Header -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+          <div class="glass-card p-4 rounded-2xl border border-slate-800">
+            <span class="text-xs text-slate-400 block mb-1">إجمالي مسافات الأسطول</span>
+            <div class="text-2xl sm:text-3xl font-black font-mono-numbers text-emerald-400" id="superTotalKm">0 <span class="text-sm font-normal text-slate-400">كم</span></div>
+          </div>
+
+          <div class="glass-card p-4 rounded-2xl border border-slate-800">
+            <span class="text-xs text-slate-400 block mb-1">إجمالي رحلات المشاريع</span>
+            <div class="text-2xl sm:text-3xl font-black font-mono-numbers text-rose-400" id="superTotalTrips">0</div>
+          </div>
+
+          <div class="glass-card p-4 rounded-2xl border border-slate-800">
+            <span class="text-xs text-slate-400 block mb-1">إجمالي مصاريف الوقود</span>
+            <div class="text-2xl sm:text-3xl font-black font-mono-numbers text-amber-400" id="superTotalFuel">0</div>
+          </div>
+
+          <div class="glass-card p-4 rounded-2xl border border-slate-800">
+            <span class="text-xs text-slate-400 block mb-1">متوسط مسافة الرحلة</span>
+            <div class="text-2xl sm:text-3xl font-black font-mono-numbers text-cyan-300" id="superAvgTripKm">0 <span class="text-sm font-normal text-slate-400">كم</span></div>
+          </div>
+        </div>
+
+        <!-- SECTION: LIVE DRIVER AVAILABILITY ("مين متاح ومين طالع") -->
+        <div id="driversAvailabilitySection" class="glass-card p-4 sm:p-5 rounded-2xl border border-blue-500/30 bg-gradient-to-r from-slate-900 via-slate-900/95 to-blue-950/20 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
+                <i data-lucide="users" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                  <span>حالة توافر السائقين الميدانية (مين متاح ومين طالع)</span>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot"></span>
+                    <span>مباشر</span>
+                  </span>
+                </h4>
+                <p class="text-[11px] text-slate-400 mt-0.5">متابعة لحظية لحالة كل سائق: من هو متاح وجاهز للانطلاق ومن هو في رحلة ميدانية جارية</p>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-2.5">
+              <span class="px-3 py-1.5 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                <span>المتاحين:</span>
+                <strong id="availDriversCountBadge" class="font-mono-numbers text-sm text-white">0</strong>
+              </span>
+              <span class="px-3 py-1.5 rounded-xl bg-rose-950/80 border border-rose-500/40 text-rose-300 text-xs font-bold flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
+                <span>طالع في رحلة:</span>
+                <strong id="busyDriversCountBadge" class="font-mono-numbers text-sm text-white">0</strong>
+              </span>
+            </div>
+          </div>
+
+          <!-- Two Grid Columns: Available vs Out on Trip -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            
+            <!-- Column 1: Available Drivers (متاح) -->
+            <div class="space-y-3 bg-slate-950/60 p-3.5 sm:p-4 rounded-xl border border-emerald-500/20">
+              <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                <h5 class="text-xs sm:text-sm font-bold text-emerald-300 flex items-center gap-1.5">
+                  <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+                  <span>السائقين المتاحين للتحرك الآن (متاح 🟢)</span>
+                </h5>
+                <span class="text-[11px] text-slate-400">جاهزون لأي تكليف جديد</span>
+              </div>
+              <div id="availableDriversList" class="space-y-2.5">
+                <!-- Dynamically populated -->
+              </div>
+              <div id="noAvailableDriversPrompt" class="hidden p-4 rounded-xl bg-slate-900/50 border border-slate-800 text-center text-xs text-slate-400">
+                جميع السائقين في مهام ميدانية حالياً.
+              </div>
+            </div>
+
+            <!-- Column 2: Drivers Out on Trip (طالع) -->
+            <div class="space-y-3 bg-slate-950/60 p-3.5 sm:p-4 rounded-xl border border-rose-500/20">
+              <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                <h5 class="text-xs sm:text-sm font-bold text-rose-300 flex items-center gap-1.5">
+                  <i data-lucide="navigation-2" class="w-4 h-4 text-rose-400 animate-pulse"></i>
+                  <span>السائقين في رحلات ميدانية حالياً (طالع 🔴)</span>
+                </h5>
+                <span class="text-[11px] text-slate-400">تفاصيل المهمة والوجهة الحالية</span>
+              </div>
+              <div id="busyDriversList" class="space-y-2.5">
+                <!-- Dynamically populated -->
+              </div>
+              <div id="noBusyDriversPrompt" class="hidden p-4 rounded-xl bg-slate-900/50 border border-slate-800 text-center text-xs text-slate-400">
+                لا توجد رحلات جارية حالياً، كافة السائقين متواجدين ومتاحين 🟢.
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- SECTION: FLEET VEHICLES, FUEL & ODOMETER (تحكم الوقود والعدادات في السيارات) -->
+        <div class="glass-card p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+            <div>
+              <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                <i data-lucide="gauge" class="w-4 h-4 text-cyan-400"></i>
+                <i data-lucide="fuel" class="w-4 h-4 text-amber-400"></i>
+                <span>حالة مركبات الأسطول: كمية الوقود وقراءة العداد في كل سيارة</span>
+              </h4>
+              <p class="text-[11px] text-slate-400 mt-0.5">تحكم مباشر ومتابعة دقيقة لمستوى الوقود الحالي وقراءة العداد لكل سيارة</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="addVehicleBtn" onclick="openAddVehicleModal()" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold text-xs flex items-center gap-1.5 transition-all">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                <span>إضافة مركبة</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Vehicles Cards Grid -->
+          <div id="fleetVehiclesCardsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5"></div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div class="glass-card p-4 sm:p-5 rounded-2xl border border-slate-800">
+            <h4 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+              <i data-lucide="pie-chart" class="w-4 h-4 text-rose-400"></i>
+              <span>توزيع الكيلومترات حسب المشاريع (يونيسف، DRA، FS، HA، إداري)</span>
+            </h4>
+            <div class="h-64 relative flex items-center justify-center">
+              <canvas id="teamsDistanceChart"></canvas>
+            </div>
+          </div>
+
+          <div class="glass-card p-4 sm:p-5 rounded-2xl border border-slate-800">
+            <h4 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+              <i data-lucide="bar-chart-3" class="w-4 h-4 text-emerald-400"></i>
+              <span>نشاط المسافات اليومية للأسطول (كم)</span>
+            </h4>
+            <div class="h-64 relative">
+              <canvas id="dailyDistanceChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin Control Toolbar (Full Control) -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <h4 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="shield-check" class="w-4 h-4 text-amber-400"></i>
+              <span id="controlToolbarTitle">لوحة التحكم والمتابعة (قرى الأطفال SOS)</span>
+            </h4>
+            <div class="flex flex-wrap items-center gap-2">
+              <!-- Dispatch / Book Trip for Driver -->
+              <button onclick="openDispatchTripModal()" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-rose-900/40 transition-all transform hover:-translate-y-0.5">
+                <i data-lucide="send" class="w-4 h-4"></i>
+                <span>حجز وتكليف رحلة لسائق</span>
+              </button>
+              <!-- Manage Users & Permissions -->
+              <button id="adminUsersBtn" onclick="openAdminUsersModal()" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-sm transition-all">
+                <i data-lucide="users-cog" class="w-4 h-4"></i>
+                <span>إدارة المستخدمين والصلاحيات</span>
+              </button>
+              <!-- Manage Teams -->
+              <button id="adminTeamsBtn" onclick="openAdminTeamsModal()" class="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-sm transition-all">
+                <i data-lucide="folder-cog" class="w-4 h-4"></i>
+                <span>مشاريع SOS</span>
+              </button>
+              <!-- Procurement & Inventory Shortcut (مخفي نهائياً عن مسؤول السائقين) -->
+              <button id="supervisorProcurementBtn" onclick="toggleProcurementViewForAdmin()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-sm transition-all" title="فتح كشف حسابات السيارات والمشتريات والجرد">
+                <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+                <span>المشتريات وجرد الأسطول 🛒</span>
+              </button>
+              <!-- Audit Log & Activity Center -->
+              <button id="adminAuditLogsBtn" onclick="openAuditLogsModal()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold text-xs flex items-center gap-1.5 border border-amber-500/30 shadow-sm transition-all" title="فتح سجل الرقابة والحركات الشامل">
+                <i data-lucide="shield-alert" class="w-4 h-4 text-amber-400"></i>
+                <span>سجل الرقابة 📜</span>
+              </button>
+              <!-- Export Excel -->
+              <button onclick="exportToExcel()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-sm transition-all">
+                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                <span>تصدير Excel</span>
+              </button>
+              <!-- Print PDF -->
+              <button onclick="window.print()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs flex items-center gap-1.5 transition-all">
+                <i data-lucide="printer" class="w-4 h-4"></i>
+                <span>طباعة (PDF)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Filters Row -->
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5 pt-1">
+            <div>
+              <label class="text-xs text-slate-400 block mb-1">بحث عام</label>
+              <input type="text" id="filterSearch" oninput="renderSupervisorTable()" placeholder="ابحث بالمشروع، السائق، الراكب..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500">
+            </div>
+            <div>
+              <label class="text-xs text-slate-400 block mb-1">المشروع / الفريق</label>
+              <select id="filterTeam" onchange="renderSupervisorTable()" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+                <option value="ALL">جميع المشاريع</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs text-slate-400 block mb-1">السائق</label>
+              <select id="filterDriver" onchange="renderSupervisorTable()" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+                <option value="ALL">جميع السائقين</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs text-slate-400 block mb-1">الفترة الزمنية</label>
+              <select id="filterPeriod" onchange="renderSupervisorTable()" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+                <option value="ALL">كل الأوقات</option>
+                <option value="TODAY">رحلات اليوم</option>
+                <option value="WEEK">هذا الأسبوع</option>
+                <option value="MONTH">هذا الشهر</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Master Trips Table with Permissions Enforcement -->
+        <div class="glass-card rounded-2xl border border-slate-800 overflow-hidden shadow-lg">
+          <div class="overflow-x-auto">
+            <table class="w-full text-right text-xs">
+              <thead class="bg-slate-900/90 text-slate-300 border-b border-slate-800">
+                <tr>
+                  <th class="p-3.5">#</th>
+                  <th class="p-3.5">تاريخ ووقت الرحلة</th>
+                  <th class="p-3.5">السائق والمركبة</th>
+                  <th class="p-3.5">المشروع / الفريق</th>
+                  <th class="p-3.5">الركاب والمرافقين</th>
+                  <th class="p-3.5 font-mono-numbers">عداد البداية</th>
+                  <th class="p-3.5 font-mono-numbers">نهاية العداد</th>
+                  <th class="p-3.5 font-mono-numbers text-emerald-400">المسافة</th>
+                  <th class="p-3.5 whitespace-nowrap text-sky-400 font-bold">احتساب الإيجار 🏷️</th>
+                  <th class="p-3.5">الوقود</th>
+                  <th class="p-3.5">الصور</th>
+                  <th class="p-3.5 text-center">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="supervisorTripsTbody" class="divide-y divide-slate-800/60 text-slate-300"></tbody>
+            </table>
+          </div>
+          <div id="noTripsFoundNotice" class="p-8 text-center text-slate-500 hidden">
+            لا توجد رحلات مطابقة لمعايير البحث الحالية.
+          </div>
+        </div>
+
+        <!-- SECTION: FLEET FUEL LOGS (سجل تعبئة السولار والوقود للأسطول) -->
+        <div class="glass-card p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+            <div>
+              <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                <i data-lucide="fuel" class="w-4 h-4 text-amber-400"></i>
+                <span>سجل تعبئة السولار والوقود (يظهر للجميع)</span>
+              </h4>
+              <p class="text-[11px] text-slate-400 mt-0.5">متابعة فورية لتعبئات السولار باللتر والتاريخ والوقت • التعديل والحذف محصور بالمشرف العام (admin) فقط</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="openAddFuelLogModal()" class="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                <span>تسجيل تعبئة سولار ⛽</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-right text-xs">
+              <thead class="bg-slate-900/90 text-slate-300 border-b border-slate-800">
+                <tr>
+                  <th class="p-3">#</th>
+                  <th class="p-3">تاريخ ووقت التعبئة</th>
+                  <th class="p-3">نوع العربية / المركبة</th>
+                  <th class="p-3 font-mono-numbers text-amber-300">كمية السولار</th>
+                  <th class="p-3 font-mono-numbers">قراءة العداد</th>
+                  <th class="p-3">المحطة والتكلفة</th>
+                  <th class="p-3">سُجل بواسطة</th>
+                  <th class="p-3">ملاحظات</th>
+                  <th class="p-3 text-center">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="fleetFuelLogsTbody" class="divide-y divide-slate-800/60 text-slate-300"></tbody>
+            </table>
+          </div>
+          <div id="noFuelLogsNotice" class="p-6 text-center text-slate-500 hidden">
+            لا توجد تعبئات سولار مسجلة حتى الآن.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ======================================================= -->
+      <!-- 4. واجهة مسؤول السولار والوقود (FUEL OFFICER VIEW)        -->
+      <!-- ======================================================= -->
+      <div id="fuelOfficerView" class="hidden space-y-6">
+
+        <!-- Fuel Officer Welcome & Action Banner -->
+        <div class="glass-card p-5 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-950/30 via-slate-900 to-blue-950/30 flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/40">
+              <i data-lucide="fuel" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-base font-bold text-white">لوحة تسجيل وتوثيق السولار والوقود</h3>
+                <span class="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold">مسؤول السولار</span>
+              </div>
+              <p class="text-xs text-slate-300 mt-0.5">تسجيل كميات تعبئة السولار لسيارات الأسطول وتحديث حالة الوقود فورا عند الجميع</p>
+            </div>
+          </div>
+          <div>
+            <button onclick="openAddFuelLogModal()" class="px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm flex items-center gap-2 shadow-lg shadow-amber-900/40 transition-all transform hover:-translate-y-0.5 active:scale-95">
+              <i data-lucide="plus-circle" class="w-5 h-5"></i>
+              <span>تسجيل تعبئة سولار جديدة ⛽</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Fuel Stats KPIs -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+          <div class="glass-card p-4 rounded-2xl border border-slate-800">
+            <span class="text-xs text-slate-400 block mb-1">إجمالي سولار اليوم</span>
+            <div class="text-2xl sm:text-3xl font-black font-mono-numbers text-amber-400" id="fuelTodayLiters">0 <span class="text-sm font-normal text-slate-400">لتر</span></div>
+          </div>
+          <div class="glass-card p-4 rounded-2xl border border-slate-800">
+            <span class="text-xs text-slate-400 block mb-1">عمليات التعبئة اليوم</span>
+            <div class="text-2xl sm:text-3xl font-black font-mono-numbers text-emerald-400" id="fuelTodayCount">0</div>
+          </div>
+          <div class="glass-card p-4 rounded-2xl border border-slate-800">
+            <span class="text-xs text-slate-400 block mb-1">إجمالي السولار الكلي</span>
+            <div class="text-2xl sm:text-3xl font-black font-mono-numbers text-sky-400" id="fuelTotalAllLiters">0 <span class="text-sm font-normal text-slate-400">لتر</span></div>
+          </div>
+          <div class="glass-card p-4 rounded-2xl border border-slate-800">
+            <span class="text-xs text-slate-400 block mb-1">مركبات الأسطول المتاحة</span>
+            <div class="text-2xl sm:text-3xl font-black font-mono-numbers text-cyan-300" id="fuelTotalVehiclesCount">0</div>
+          </div>
+        </div>
+
+        <!-- Vehicles Fuel Overview Grid -->
+        <div class="glass-card p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-4">
+          <h4 class="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800/80 pb-3">
+            <i data-lucide="gauge" class="w-4 h-4 text-cyan-400"></i>
+            <span>حالة ومستوى السولار لمركبات الأسطول</span>
+          </h4>
+          <div id="fuelOfficerVehiclesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5"></div>
+        </div>
+
+        <!-- Fuel Officer History Table -->
+        <div class="glass-card p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+            <h4 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="history" class="w-4 h-4 text-amber-400"></i>
+              <span>سجل جميع تعبئات السولار السابقة</span>
+            </h4>
+            <span class="text-xs text-slate-400 bg-slate-900 px-3 py-1 rounded-full border border-slate-800">تعديل وحذف السجلات محصور بالمشرف العام (admin)</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-right text-xs">
+              <thead class="bg-slate-900/90 text-slate-300 border-b border-slate-800">
+                <tr>
+                  <th class="p-3">#</th>
+                  <th class="p-3">تاريخ ووقت التعبئة</th>
+                  <th class="p-3">نوع العربية / المركبة</th>
+                  <th class="p-3 font-mono-numbers text-amber-300">كمية السولار</th>
+                  <th class="p-3 font-mono-numbers">قراءة العداد</th>
+                  <th class="p-3">المحطة والتكلفة</th>
+                  <th class="p-3">سُجل بواسطة</th>
+                  <th class="p-3">ملاحظات</th>
+                  <th class="p-3 text-center">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="fuelOfficerLogsTbody" class="divide-y divide-slate-800/60 text-slate-300"></tbody>
+            </table>
+          </div>
+          <div id="noFuelOfficerLogsNotice" class="p-6 text-center text-slate-500 hidden">
+            لا توجد تعبئات سولار مسجلة حتى الآن.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ======================================================= -->
+      <!-- 5. واجهة مسؤول المشتريات وحسابات الإيجار اليومي للأسطول    -->
+      <!-- ======================================================= -->
+      <div id="procurementView" class="hidden space-y-6">
+
+        <!-- Procurement Welcome & Action Banner -->
+        <div class="glass-card p-5 rounded-2xl border border-sky-500/30 bg-gradient-to-r from-sky-950/40 via-slate-900 to-emerald-950/30 flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-2xl bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0 border border-sky-500/40 shadow-lg shadow-sky-950/50">
+              <i data-lucide="calculator" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-base font-bold text-white">لوحة حسابات الإيجار اليومي وجرد الأسطول والمشتريات</h3>
+                <span class="px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 text-xs font-bold">مسؤول الحسابات والمشتريات</span>
+              </div>
+              <p class="text-xs text-slate-300 mt-0.5">تسعيرة إيجار السيارات باليوم • احتساب التكلفة على كل فريق بأول طلعة • فواتير الصيانة والجرد الشامل</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button onclick="openAddPurchaseModal()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-900/40 transition-all transform hover:-translate-y-0.5 active:scale-95">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i>
+              <span>تسجيل فاتورة صيانة/مشتريات 🛒</span>
+            </button>
+            <button onclick="exportProcurementExcel()" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold text-xs flex items-center gap-1.5 border border-slate-700 transition-all">
+              <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+              <span>تصدير الحسابات Excel</span>
+            </button>
+            <button onclick="window.print()" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center gap-1.5 border border-slate-700 transition-all">
+              <i data-lucide="printer" class="w-4 h-4"></i>
+              <span>طباعة الكشف</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Procurement Financial KPIs: إجمالي إيجارات الأسطول على الفرق + فواتير المشتريات والصيانة + الإجمالي الكامل -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div class="glass-card p-4 rounded-2xl border border-slate-800">
+            <span class="text-xs text-slate-400 block mb-1">إجمالي إيجارات الأسطول على الفرق</span>
+            <div class="text-2xl font-black font-mono-numbers text-sky-400" id="procurementTotalAssetValue">0 <span class="text-xs font-normal text-slate-400">₪</span></div>
+            <span class="text-[10px] text-slate-500 mt-1 block">مجموع الإيجار اليومي المحتسب على المشاريع</span>
+          </div>
+
+          <div class="glass-card p-4 rounded-2xl border border-slate-800">
+            <span class="text-xs text-slate-400 block mb-1">إجمالي فواتير ومصروفات الصيانة</span>
+            <div class="text-2xl font-black font-mono-numbers text-amber-400" id="procurementTotalPurchasesCost">0 <span class="text-xs font-normal text-slate-400">₪</span></div>
+            <span class="text-[10px] text-slate-500 mt-1 block">قطع غيار، زيوت، إطارات وتراخيص</span>
+          </div>
+
+          <div class="glass-card p-4 rounded-2xl border border-emerald-500/40 bg-gradient-to-br from-emerald-950/40 to-slate-900">
+            <span class="text-xs text-emerald-300 font-bold block mb-1">الإجمالي العام الكامل للحسابات</span>
+            <div class="text-2xl font-black font-mono-numbers text-emerald-400" id="procurementGrandTotal">0 <span class="text-xs font-normal text-emerald-300/80">₪</span></div>
+            <span class="text-[10px] text-emerald-300/70 mt-1 block">إيجارات الفرق + فواتير المشتريات والصيانة</span>
+          </div>
+
+          <div class="glass-card p-4 rounded-2xl border border-slate-800">
+            <span class="text-xs text-slate-400 block mb-1">إجمالي أيام التشغيل المحتسبة</span>
+            <div class="text-2xl font-black font-mono-numbers text-white" id="procurementVehiclesCount">0 <span class="text-xs font-normal text-slate-400">يوم تشغيل</span></div>
+            <span class="text-[10px] text-slate-500 mt-1 block">مجموع أيام عمل سيارات الأسطول</span>
+          </div>
+        </div>
+
+        <!-- Procurement Tabs Navigation (3 Tabs) -->
+        <div class="flex items-center gap-2 border-b border-slate-800 pb-1 overflow-x-auto">
+          <button id="procTabTeamsBtn" onclick="switchProcurementTab('teams')" class="px-4 py-2 border-b-2 border-sky-500 text-sky-400 font-bold text-xs flex items-center gap-1.5 transition-all whitespace-nowrap">
+            <i data-lucide="users" class="w-4 h-4"></i>
+            <span>حسابات الفرق والمشاريع (توزيع الإيجار اليومي) 👥</span>
+          </button>
+          <button id="procTabInventoryBtn" onclick="switchProcurementTab('inventory')" class="px-4 py-2 border-b-2 border-transparent text-slate-400 hover:text-white font-bold text-xs flex items-center gap-1.5 transition-all whitespace-nowrap">
+            <i data-lucide="car" class="w-4 h-4"></i>
+            <span>حسابات سيارات الأسطول وجرد التشغيل 🚗</span>
+          </button>
+          <button id="procTabInvoicesBtn" onclick="switchProcurementTab('invoices')" class="px-4 py-2 border-b-2 border-transparent text-slate-400 hover:text-white font-bold text-xs flex items-center gap-1.5 transition-all whitespace-nowrap">
+            <i data-lucide="receipt" class="w-4 h-4"></i>
+            <span>سجل فواتير المشتريات والصيانة التفصيلي 🧾</span>
+          </button>
+        </div>
+
+        <!-- TAB 1: TEAMS RENTAL LEDGER (كشف حسابات الفرق والمشاريع) -->
+        <div id="procurementTeamsSection" class="space-y-4">
+          <!-- Daily Rental Rule Clarification Banner -->
+          <div class="p-4 rounded-2xl bg-gradient-to-r from-sky-950/60 to-blue-900/30 border border-sky-500/40 flex items-start gap-3">
+            <div class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0 mt-0.5">
+              <i data-lucide="info" class="w-4 h-4"></i>
+            </div>
+            <div class="text-xs space-y-1.5">
+              <div class="font-bold text-sky-300 flex items-center gap-1.5">
+                <span>قاعدة احتساب تسعيرة الإيجار اليومي للسيارات على الفرق والمشاريع:</span>
+                <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-mono-numbers">أول طلعة = إيجار اليوم كامل</span>
+              </div>
+              <p class="text-slate-300 leading-relaxed">
+                يتم احتساب إيجار السيارة اليومي <strong class="text-amber-300">على الفريق صاحب أول طلعة للمركبة في ذلك اليوم فقط</strong>. وباقي رحلات نفس السيارة خلال باقي اليوم تُسجل بكافة تفاصيلها (السائق، العداد، الركاب، والوجهة) ولكن <strong class="text-emerald-300">لا يُعاد احتساب الإيجار اليومي عليها (0 ₪)</strong> منعاً للازدواجية.
+              </p>
+              <p class="text-slate-400 text-[11px] bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                💡 <strong>مثال عملي:</strong> خرجت المركبة صباحاً في أول رحلة لصالح فريق <strong>(يونيسف)</strong>، ثم قامت بنفس اليوم برحلة ثانية <strong>(إداري)</strong> -> يُحسب إيجار اليوم كاملاً على <strong>(يونيسف)</strong> وتُسجل رحلة الإداري بـ <strong>(0 ₪)</strong>.
+              </p>
+            </div>
+          </div>
+
+          <!-- Teams Summary Cards Grid -->
+          <div class="flex items-center justify-between gap-3 pt-1">
+            <h4 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="layers" class="w-4 h-4 text-sky-400"></i>
+              <span>كشف أرصدة الفرق والمشاريع (إجمالي أيام العمل وتكلفة الإيجار المستحقة)</span>
+            </h4>
+            <span class="text-xs text-slate-400 font-mono-numbers" id="procurementTeamsCountLabel"></span>
+          </div>
+
+          <div id="procurementTeamsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5"></div>
+
+          <!-- Master Daily Allocations Table (سجل الأيام وتوزيع الإيجار على الفرق) -->
+          <div class="glass-card rounded-2xl border border-slate-800 overflow-hidden shadow-lg space-y-3 p-4 sm:p-5">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+              <div>
+                <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                  <i data-lucide="calendar-check" class="w-4 h-4 text-emerald-400"></i>
+                  <span>جدول التوزيع اليومي لإيجار سيارات الأسطول على الفرق</span>
+                </h4>
+                <p class="text-[11px] text-slate-400 mt-0.5">يوثق كل يوم عمل لكل مركبة، الفريق المحتسب عليه بناءً على أول طلعة، وتسعيرة اليوم</p>
+              </div>
+              <div class="w-full sm:w-64">
+                <input type="text" id="procurementAllocationSearch" oninput="renderProcurementDaysAllocationTable()" placeholder="بحث في السجل اليومي..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500">
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-right text-xs">
+                <thead class="bg-slate-900/90 text-slate-300 border-b border-slate-800">
+                  <tr>
+                    <th class="p-3">#</th>
+                    <th class="p-3">التاريخ 📅</th>
+                    <th class="p-3">المركبة 🚗</th>
+                    <th class="p-3">الفريق المحتسب عليه (أول طلعة) 👥</th>
+                    <th class="p-3 font-mono-numbers text-sky-300">تسعيرة الإيجار اليومي 🏷️</th>
+                    <th class="p-3">السائق 👤</th>
+                    <th class="p-3">الوجهة ومسار الرحلة 📍</th>
+                    <th class="p-3 text-center">كشف الحساب</th>
+                  </tr>
+                </thead>
+                <tbody id="procurementDailyAllocationsTbody" class="divide-y divide-slate-800/60 text-slate-300"></tbody>
+              </table>
+            </div>
+            <div id="noDailyAllocationsNotice" class="p-6 text-center text-slate-500 hidden text-xs">
+              لا توجد رحلات مسجلة لحساب الإيجار اليومي حتى الآن.
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: VEHICLE ACCOUNTS & INVENTORY (حساب كل سيارة وجرد التشغيل) -->
+        <div id="procurementInventorySection" class="hidden space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <h4 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="coins" class="w-4 h-4 text-emerald-400"></i>
+              <span>كشف حسابات سيارات الأسطول (تسعيرة الإيجار اليومي، أيام العمل، وفواتير الصيانة)</span>
+            </h4>
+            <div class="w-full sm:w-64">
+              <input type="text" id="procurementVehSearch" oninput="renderVehicleInventoryCards()" placeholder="بحث في السيارات..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500">
+            </div>
+          </div>
+
+          <!-- Cards Grid for Each Vehicle Account -->
+          <div id="procurementVehiclesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3.5"></div>
+
+          <!-- Master Inventory Table (للطباعة والجرد الكامل) -->
+          <div class="glass-card rounded-2xl border border-slate-800 overflow-hidden shadow-lg space-y-3 p-4 sm:p-5">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                <i data-lucide="clipboard-list" class="w-4 h-4 text-sky-400"></i>
+                <span>جدول جرد حسابات وتشغيل أسطول قرى الأطفال SOS الشامل</span>
+              </h4>
+              <span class="text-xs text-slate-400">تحديث فوري لجميع أيام التشغيل والإيرادات والمصروفات</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-right text-xs">
+                <thead class="bg-slate-900/90 text-slate-300 border-b border-slate-800">
+                  <tr>
+                    <th class="p-3">#</th>
+                    <th class="p-3">المركبة</th>
+                    <th class="p-3">اللوحة / الموديل</th>
+                    <th class="p-3">السائق المعين</th>
+                    <th class="p-3 font-mono-numbers text-sky-300">تسعيرة الإيجار اليومي 🏷️</th>
+                    <th class="p-3 font-mono-numbers text-sky-400">أيام العمل المحتسبة 📅</th>
+                    <th class="p-3 font-mono-numbers text-emerald-400 font-bold">إجمالي الإيجار المحتسب 💰</th>
+                    <th class="p-3 font-mono-numbers text-amber-300">فواتير الصيانة والمشتريات 🛒</th>
+                    <th class="p-3 font-mono-numbers text-emerald-300 font-black">إجمالي حساب السيارة 💎</th>
+                    <th class="p-3 text-center">الإجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="procurementInventoryTbody" class="divide-y divide-slate-800/60 text-slate-300"></tbody>
+                <tfoot class="bg-slate-950 font-bold text-white border-t-2 border-slate-700">
+                  <tr>
+                    <td colspan="5" class="p-3 text-left">الإجمالي العام الكامل للأسطول:</td>
+                    <td id="tfootTotalBilledDays" class="p-3 font-mono-numbers text-sky-300">0 يوم</td>
+                    <td id="tfootTotalRentalEarnings" class="p-3 font-mono-numbers text-emerald-400">0 ₪</td>
+                    <td id="tfootTotalPurchases" class="p-3 font-mono-numbers text-amber-400">0 ₪</td>
+                    <td id="tfootGrandTotal" class="p-3 font-mono-numbers text-emerald-300 text-sm">0 ₪</td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: ALL PURCHASES INVOICES TABLE (سجل فواتير المشتريات والصيانة) -->
+        <div id="procurementInvoicesSection" class="hidden space-y-4">
+          <div class="glass-card p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+              <div>
+                <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                  <i data-lucide="receipt" class="w-4 h-4 text-amber-400"></i>
+                  <span>سجل فواتير مشتريات وقطع غيار وصيانة الأسطول</span>
+                </h4>
+                <p class="text-[11px] text-slate-400 mt-0.5">توثيق رسمي لكافة فواتير الشراء والقطع والصيانة لكل سيارة</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="openAddPurchaseModal()" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all">
+                  <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                  <span>إضافة فاتورة مشتريات</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Invoices Filters -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <div>
+                <label class="text-xs text-slate-400 block mb-1">تصفية حسب السيارة</label>
+                <select id="procFilterVehicle" onchange="renderPurchasesTable()" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+                  <option value="ALL">جميع سيارات الأسطول</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-xs text-slate-400 block mb-1">نوع المشترى</label>
+                <select id="procFilterType" onchange="renderPurchasesTable()" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+                  <option value="ALL">جميع الأنواع</option>
+                  <option value="قطع غيار وصيانة">قطع غيار وصيانة</option>
+                  <option value="إطارات وبطاريات">إطارات وبطاريات</option>
+                  <option value="ترخيص وتأمين">ترخيص وتأمين</option>
+                  <option value="زيوت وفلاتر">زيوت وفلاتر</option>
+                  <option value="تجهيزات وفرش">تجهيزات وفرش</option>
+                  <option value="أخرى">أخرى</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-xs text-slate-400 block mb-1">بحث في البيان أو المورد</label>
+                <input type="text" id="procFilterSearch" oninput="renderPurchasesTable()" placeholder="ابحث بالبيان، المورد، رقم الفاتورة..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500">
+              </div>
+            </div>
+
+            <!-- Invoices Table -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-right text-xs">
+                <thead class="bg-slate-900/90 text-slate-300 border-b border-slate-800">
+                  <tr>
+                    <th class="p-3">#</th>
+                    <th class="p-3">التاريخ</th>
+                    <th class="p-3">المركبة</th>
+                    <th class="p-3">بيان المشترى</th>
+                    <th class="p-3">التصنيف</th>
+                    <th class="p-3">المورد / الفاتورة</th>
+                    <th class="p-3 font-mono-numbers text-amber-400">التكلفة (₪)</th>
+                    <th class="p-3">سُجل بواسطة</th>
+                    <th class="p-3">ملاحظات</th>
+                    <th class="p-3 text-center">الإجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="procurementInvoicesTbody" class="divide-y divide-slate-800/60 text-slate-300"></tbody>
+              </table>
+            </div>
+            <div id="noPurchasesNotice" class="p-6 text-center text-slate-500 hidden">
+              لا توجد فواتير مشتريات مسجلة مطابقة لمعايير البحث.
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: START NEW TRIP                      -->
+  <!-- ========================================== -->
+  <div id="startTripModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-card w-full max-w-lg rounded-2xl border border-slate-800 shadow-2xl p-6 space-y-5 my-8 relative">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-rose-600/20 text-rose-400 flex items-center justify-center">
+            <i data-lucide="play" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">تسجيل بدء رحلة جديدة</h3>
+            <p class="text-xs text-slate-400">توثيق المشروع، الركاب، ووقت وعداد الانطلاق</p>
+          </div>
+        </div>
+        <button onclick="closeModal('startTripModal')" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="startTripForm" onsubmit="handleStartTripSubmit(event)" class="space-y-4">
+        <!-- Driver & Vehicle -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">السائق</label>
+            <input type="text" id="startDriverName" readonly class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-300 font-bold cursor-not-allowed">
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">المركبة</label>
+            <input type="text" id="startVehicle" readonly class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-300 font-mono-numbers cursor-not-allowed">
+          </div>
+        </div>
+
+        <!-- Project / Team Selection -->
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">مع أي مشروع / فريق الرحلة؟ <span class="text-rose-500">*</span></label>
+          <div class="flex gap-2">
+            <select id="startTeamSelect" onchange="handleTeamSelectChange()" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white"></select>
+            <input type="text" id="startTeamCustom" placeholder="اكتب اسم المشروع / الفريق هنا..." class="hidden w-1/2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white">
+          </div>
+        </div>
+
+        <!-- Start Date & Time + Destination -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">
+              <i data-lucide="calendar" class="w-3.5 h-3.5 inline text-rose-400 ml-1"></i>
+              <span>تاريخ ووقت انطلاق الرحلة</span> <span class="text-rose-500">*</span>
+            </label>
+            <input type="datetime-local" id="startDateTime" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers">
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">الوجهة أو الغرض من الرحلة</label>
+            <input type="text" id="startDestination" placeholder="مثال: مخيم رفح، تفقد مراكز الإيواء..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+          </div>
+        </div>
+
+        <!-- Passengers / Riding Companions -->
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">
+            مين راكب معه؟ (الركاب والمرافقين)
+          </label>
+          <div class="flex gap-2 mb-2">
+            <input type="text" id="passengerInput" placeholder="اكتب اسم الراكب واضغط إضافة..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white" onkeydown="if(event.key === 'Enter'){ event.preventDefault(); addPassengerTag(); }">
+            <button type="button" onclick="addPassengerTag()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition-all">إضافة</button>
+          </div>
+          <div id="passengersTagsContainer" class="flex flex-wrap gap-1.5 min-h-8 p-2 rounded-xl bg-slate-950/60 border border-slate-800/80"></div>
+        </div>
+
+        <!-- Starting Odometer + Camera -->
+        <div class="space-y-2">
+          <label class="text-xs font-semibold text-slate-300 flex items-center justify-between">
+            <span>قراءة عداد البداية (كم) <span class="text-rose-500">*</span></span>
+            <span class="text-slate-500 font-mono-numbers text-[11px]" id="suggestedStartOdoNotice"></span>
+          </label>
+          <div class="relative">
+            <input type="number" step="1" min="0" id="startOdometer" required placeholder="مثال: 145200" class="w-full bg-slate-950 border-2 border-rose-500/40 rounded-xl px-4 py-3 text-lg font-mono-numbers text-cyan-300 font-bold tracking-wider placeholder-slate-600">
+            <span class="absolute left-3 top-3 text-sm text-slate-400 font-bold">كم</span>
+          </div>
+
+          <!-- Live Camera-Only Capture for Start Odometer (مباشر من الكاميرا فقط - ممنوع من المعرض) -->
+          <div class="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-300 flex items-center gap-1.5 font-medium">
+                <i data-lucide="camera" class="w-4 h-4 text-rose-400"></i>
+                <span>تصوير عداد البداية بالكاميرا الحية (صورة فورية وموثقة)</span>
+              </span>
+            </div>
+
+            <div>
+              <button type="button" onclick="triggerMobilePhoto('startOdoPhotoCameraInput')" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-rose-900/80 to-rose-950 hover:from-rose-800 hover:to-rose-900 border-2 border-rose-500/50 text-rose-100 text-xs font-black flex items-center justify-center gap-2 shadow-lg shadow-rose-950/40 transition-all transform active:scale-95">
+                <i data-lucide="camera" class="w-4 h-4 text-rose-400"></i>
+                <span>📸 التقاط صورة حية للعداد بالكاميرا فقط (مباشر)</span>
+              </button>
+            </div>
+
+            <!-- Direct Live Camera capture only (No gallery) -->
+            <input type="file" id="startOdoPhotoCameraInput" accept="image/*" capture="environment" style="position:fixed; top:-1000px; left:-1000px; opacity:0; pointer-events:none;" onchange="handleImageSelected(this, 'startOdoPhotoPreview', 'startOdoPhotoData')">
+
+            <div id="startOdoPhotoPreviewContainer" class="hidden relative rounded-lg overflow-hidden border border-slate-700 max-h-40">
+              <img id="startOdoPhotoPreview" class="w-full h-36 object-cover" src="" alt="عداد البداية">
+              <button type="button" onclick="removeImage('startOdoPhotoPreviewContainer', 'startOdoPhotoData')" class="absolute top-2 left-2 bg-rose-600/90 text-white p-1 rounded-md text-xs hover:bg-rose-500">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+            <input type="hidden" id="startOdoPhotoData">
+          </div>
+        </div>
+
+        <button type="submit" id="startTripSubmitBtn" class="w-full py-3.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm shadow-lg shadow-rose-600/30 flex items-center justify-center gap-2 transition-all">
+          <i data-lucide="check" class="w-5 h-5"></i>
+          <span>بدء وانطلاق الرحلة</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: END TRIP                            -->
+  <!-- ========================================== -->
+  <div id="endTripModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-card w-full max-w-lg rounded-2xl border border-slate-800 shadow-2xl p-6 space-y-5 my-8 relative">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center">
+            <i data-lucide="flag" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">إنهاء الرحلة وتسجيل عداد النهاية</h3>
+            <p class="text-xs text-slate-400">سجّل قراءة الوصول وحساب المسافة المقطوعة</p>
+          </div>
+        </div>
+        <button onclick="closeModal('endTripModal')" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800/80 flex items-center justify-between text-xs">
+        <div>
+          <span class="text-slate-400 block">المشروع / الفريق</span>
+          <span id="endTripModalTeam" class="font-bold text-white">-</span>
+        </div>
+        <div>
+          <span class="text-slate-400 block">عداد البداية</span>
+          <span id="endTripModalStartKm" class="font-mono-numbers font-bold text-rose-400">0 كم</span>
+        </div>
+        <div>
+          <span class="text-slate-400 block">وقت الانطلاق</span>
+          <span id="endTripModalStartTime" class="font-mono-numbers text-slate-300">-</span>
+        </div>
+      </div>
+
+      <form id="endTripForm" onsubmit="handleEndTripSubmit(event)" class="space-y-4">
+        <!-- End Date & Time -->
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">
+            <i data-lucide="clock" class="w-3.5 h-3.5 inline text-emerald-400 ml-1"></i>
+            <span>تاريخ ووقت وصول الرحلة (النهاية)</span> <span class="text-rose-500">*</span>
+          </label>
+          <input type="datetime-local" id="endDateTime" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers">
+        </div>
+
+        <!-- Ending Odometer Input -->
+        <div class="space-y-2">
+          <label class="text-xs font-semibold text-slate-300 flex items-center justify-between">
+            <span>قراءة عداد النهاية (كم) <span class="text-rose-500">*</span></span>
+            <span class="text-xs text-slate-400">يجب أن تكون أكبر من عداد البداية</span>
+          </label>
+          <div class="relative">
+            <input type="number" step="1" min="0" id="endOdometer" required oninput="calculateTripDistanceLive()" placeholder="مثال: 145280" class="w-full bg-slate-950 border-2 border-emerald-500/40 rounded-xl px-4 py-3 text-lg font-mono-numbers text-emerald-300 font-bold tracking-wider placeholder-slate-600">
+            <span class="absolute left-3 top-3 text-sm text-slate-400 font-bold">كم</span>
+          </div>
+
+          <div id="liveCalculatedDistanceCard" class="p-3 rounded-xl bg-emerald-950/40 border border-emerald-800/50 flex items-center justify-between">
+            <span class="text-xs font-semibold text-emerald-300 flex items-center gap-1.5">
+              <i data-lucide="check-circle" class="w-4 h-4"></i>
+              <span>المسافة المقطوعة المحسوبة:</span>
+            </span>
+            <span id="liveCalculatedKm" class="font-mono-numbers text-base font-extrabold text-emerald-400">0 كم</span>
+          </div>
+          <p id="endOdoErrorMsg" class="text-xs text-rose-400 font-semibold hidden"></p>
+
+          <!-- Live Camera-Only Capture for End Odometer (مباشر من الكاميرا فقط - ممنوع من المعرض) -->
+          <div class="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-300 flex items-center gap-1.5 font-medium">
+                <i data-lucide="camera" class="w-4 h-4 text-emerald-400"></i>
+                <span>تصوير عداد النهاية بالكاميرا الحية (صورة فورية وموثقة)</span>
+              </span>
+            </div>
+
+            <div>
+              <button type="button" onclick="triggerMobilePhoto('endOdoPhotoCameraInput')" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-900/80 to-emerald-950 hover:from-emerald-800 hover:to-emerald-900 border-2 border-emerald-500/50 text-emerald-100 text-xs font-black flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40 transition-all transform active:scale-95">
+                <i data-lucide="camera" class="w-4 h-4 text-emerald-400"></i>
+                <span>📸 التقاط صورة حية لعداد النهاية بالكاميرا فقط (مباشر)</span>
+              </button>
+            </div>
+
+            <!-- Direct Live Camera capture only (No gallery) -->
+            <input type="file" id="endOdoPhotoCameraInput" accept="image/*" capture="environment" style="position:fixed; top:-1000px; left:-1000px; opacity:0; pointer-events:none;" onchange="handleImageSelected(this, 'endOdoPhotoPreview', 'endOdoPhotoData')">
+
+            <div id="endOdoPhotoPreviewContainer" class="hidden relative rounded-lg overflow-hidden border border-slate-700 max-h-40">
+              <img id="endOdoPhotoPreview" class="w-full h-36 object-cover" src="" alt="عداد النهاية">
+              <button type="button" onclick="removeImage('endOdoPhotoPreviewContainer', 'endOdoPhotoData')" class="absolute top-2 left-2 bg-rose-600/90 text-white p-1 rounded-md text-xs hover:bg-rose-500">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+            <input type="hidden" id="endOdoPhotoData">
+          </div>
+        </div>
+
+        <!-- Fuel / Expenses Section with Source Selection (محطة vs مخزون القرية) -->
+        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
+          <label class="flex items-center justify-between cursor-pointer">
+            <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+              <i data-lucide="fuel" class="w-4 h-4 text-amber-400"></i>
+              <span>هل قمت بتعبئة وقود أو دفع مصاريف أثناء الرحلة؟</span>
+            </span>
+            <input type="checkbox" id="hasFuelExpense" onchange="toggleFuelInputs()" class="w-4 h-4 rounded text-rose-600 bg-slate-800 border-slate-700">
+          </label>
+
+          <div id="fuelInputsContainer" class="hidden space-y-3 pt-2 border-t border-slate-800">
+            <!-- Source Selector -->
+            <div>
+              <label class="text-xs font-semibold text-slate-300 block mb-1.5">مصدر التعبئة (من أين تم التزود بالوقود؟)</label>
+              <div class="grid grid-cols-2 gap-2">
+                <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-amber-500/50 cursor-pointer transition-colors has-[:checked]:border-amber-500 has-[:checked]:bg-amber-950/30">
+                  <input type="radio" name="endTripFuelSource" value="station" checked onchange="toggleEndTripFuelSource('station')" class="text-amber-500">
+                  <span class="text-xs font-bold text-amber-200">⛽ محطة وقود</span>
+                </label>
+                <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-sky-500/50 cursor-pointer transition-colors has-[:checked]:border-sky-500 has-[:checked]:bg-sky-950/30">
+                  <input type="radio" name="endTripFuelSource" value="village_stock" onchange="toggleEndTripFuelSource('village_stock')" class="text-sky-400">
+                  <span class="text-xs font-bold text-sky-200">🏛️ مخزون القرية (SOS)</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-xs text-slate-400 block mb-1">المبلغ المدفوع (₪)</label>
+                <input type="number" step="0.5" id="fuelCost" placeholder="0" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+              </div>
+              <div>
+                <label class="text-xs text-slate-400 block mb-1">الكمية باللتر</label>
+                <input type="number" step="0.5" id="fuelLiters" placeholder="0" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+              </div>
+            </div>
+            <div id="endTripStationContainer">
+              <label id="endTripStationLabel" class="text-xs text-slate-400 block mb-1">اسم المحطة أو تفاصيل المصروف</label>
+              <input type="text" id="fuelStation" placeholder="مثال: محطة الهدى - ديزل" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+            </div>
+            <div class="space-y-1.5 pt-1">
+              <span class="text-xs text-slate-400 block font-medium">صورة فاتورة الوقود (اختياري)</span>
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" onclick="triggerMobilePhoto('fuelReceiptCameraInput')" class="py-2 px-3 rounded-xl bg-amber-950/50 hover:bg-amber-900/60 border border-amber-800/60 text-amber-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors">
+                  <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+                  <span>تصوير الفاتورة 📷</span>
+                </button>
+                <button type="button" onclick="triggerMobilePhoto('fuelReceiptGalleryInput')" class="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors">
+                  <i data-lucide="image" class="w-3.5 h-3.5"></i>
+                  <span>من المعرض 🖼️</span>
+                </button>
+              </div>
+              <input type="file" id="fuelReceiptCameraInput" accept="image/*" capture="environment" style="position:fixed; top:-1000px; left:-1000px; opacity:0; pointer-events:none;" onchange="handleImageSelected(this, 'fuelReceiptPreview', 'fuelReceiptData')">
+              <input type="file" id="fuelReceiptGalleryInput" accept="image/*" style="position:fixed; top:-1000px; left:-1000px; opacity:0; pointer-events:none;" onchange="handleImageSelected(this, 'fuelReceiptPreview', 'fuelReceiptData')">
+            </div>
+            <div id="fuelReceiptPreviewContainer" class="hidden relative rounded-lg overflow-hidden border border-slate-700 max-h-32">
+              <img id="fuelReceiptPreview" class="w-full h-28 object-cover" src="" alt="فاتورة الوقود">
+              <button type="button" onclick="removeImage('fuelReceiptPreviewContainer', 'fuelReceiptData')" class="absolute top-2 left-2 bg-rose-600/90 text-white p-1 rounded-md text-xs">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+            <input type="hidden" id="fuelReceiptData">
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">ملاحظات ختامية (اختياري)</label>
+          <textarea id="endTripNotes" rows="2" placeholder="أي ملاحظات حول مسار الرحلة أو حالة المركبة..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"></textarea>
+        </div>
+
+        <button type="submit" id="endTripSubmitBtn" class="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all">
+          <i data-lucide="check-check" class="w-5 h-5"></i>
+          <span>حفظ وتوثيق الرحلة نهائياً</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: EDIT VEHICLE & FUEL & ODOMETER (ضبط الوقود والعداد) -->
+  <!-- ======================================================== -->
+  <div id="editVehicleModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-card w-full max-w-md rounded-2xl border border-slate-700 p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
+            <i data-lucide="settings-2" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">ضبط العداد وكمية الوقود في السيارة</h3>
+            <p class="text-xs text-slate-400" id="editVehicleSubtitle">-</p>
+          </div>
+        </div>
+        <button onclick="closeModal('editVehicleModal')" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="editVehicleForm" onsubmit="handleEditVehicleSubmit(event)" class="space-y-3.5 text-right">
+        <input type="hidden" id="editVehicleId">
+        
+        <div>
+          <label class="text-xs text-slate-300 block mb-1">اسم المركبة ورقم اللوحة</label>
+          <input type="text" id="editVehicleName" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-semibold text-rose-300 block mb-1">قراءة العداد الحالية (كم) <span class="text-rose-500">*</span></label>
+            <input type="number" id="editVehicleOdometer" required class="w-full bg-slate-950 border border-rose-500/40 rounded-xl px-3 py-2 text-sm font-mono-numbers font-bold text-cyan-300">
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-amber-300 block mb-1">كمية الوقود الحالية (لتر) <span class="text-rose-500">*</span></label>
+            <input type="number" step="0.5" id="editVehicleFuelLiters" required class="w-full bg-slate-950 border border-amber-500/40 rounded-xl px-3 py-2 text-sm font-mono-numbers font-bold text-amber-400">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-slate-400 block mb-1">سعة خزان الوقود الإجمالية (لتر)</label>
+            <input type="number" id="editVehicleFuelCapacity" value="60" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers">
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 block mb-1">نوع الوقود</label>
+            <select id="editVehicleFuelType" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+              <option value="بنزين">بنزين</option>
+              <option value="ديزل">ديزل</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-slate-400 block mb-1">السائق المعين على المركبة</label>
+            <select id="editVehicleDriverSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"></select>
+          </div>
+          <div id="editVehicleRentalRateContainer">
+            <label class="text-xs font-semibold text-sky-300 block mb-1">تسعيرة الإيجار اليومي (شيكل/يوم) 🏷️</label>
+            <input type="number" id="editVehicleRentalRate" step="5" min="0" placeholder="مثال: 200 أو 250" class="w-full bg-slate-950 border border-sky-500/40 rounded-xl px-3 py-2 text-xs font-mono-numbers font-bold text-sky-300">
+          </div>
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button type="submit" class="flex-1 py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>حفظ وضبط العداد والوقود</span>
+          </button>
+          <button type="button" onclick="closeModal('editVehicleModal')" class="py-3 px-4 bg-slate-800 text-slate-300 rounded-xl text-xs">
+            إلغاء
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: ADD VEHICLE TO FLEET                -->
+  <!-- ========================================== -->
+  <div id="addVehicleModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-card w-full max-w-md rounded-2xl border border-slate-700 p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="car" class="w-5 h-5 text-emerald-400"></i>
+          <h3 class="text-base font-bold text-white">إضافة مركبة جديدة للأسطول</h3>
+        </div>
+        <button onclick="closeModal('addVehicleModal')" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="addVehicleForm" onsubmit="handleAddVehicleSubmit(event)" class="space-y-3 text-right">
+        <div>
+          <label class="text-xs text-slate-300 block mb-1">اسم المركبة (مثال: اسكودا أو تويوتا هايلوكس)</label>
+          <input type="text" id="addVehName" required placeholder="نوع واسم السيارة..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-slate-300 block mb-1">رقم اللوحة</label>
+            <input type="text" id="addVehPlate" placeholder="مثال: 32-5541" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers">
+          </div>
+          <div>
+            <label class="text-xs text-slate-300 block mb-1">نوع الوقود</label>
+            <select id="addVehFuelType" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+              <option value="بنزين">بنزين</option>
+              <option value="ديزل">ديزل</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-slate-300 block mb-1">قراءة العداد الأولية (كم)</label>
+            <input type="number" id="addVehOdo" required value="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers">
+          </div>
+          <div>
+            <label class="text-xs text-slate-300 block mb-1">كمية الوقود الحالية (لتر)</label>
+            <input type="number" step="0.5" id="addVehFuel" required value="40" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-slate-300 block mb-1">تعيين سائق للمركبة</label>
+            <select id="addVehDriverSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"></select>
+          </div>
+          <div id="addVehRentalRateContainer">
+            <label class="text-xs font-semibold text-sky-300 block mb-1">تسعيرة الإيجار اليومي (شيكل/يوم) 🏷️</label>
+            <input type="number" id="addVehRentalRate" step="5" min="0" value="200" placeholder="مثال: 200 أو 250" class="w-full bg-slate-900 border border-sky-500/40 rounded-xl px-3 py-2 text-xs font-mono-numbers font-bold text-sky-300">
+          </div>
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition-colors">
+          حفظ وإضافة المركبة
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: ADMIN EDIT TRIP (تحكم المشرف بقراءات العداد والوقود)-->
+  <!-- ======================================================== -->
+  <div id="editTripModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-card w-full max-w-2xl rounded-2xl border border-slate-700 shadow-2xl p-6 space-y-5 my-8">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
+            <i data-lucide="edit-3" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">تعديل بيانات وقراءات الرحلة (تحكم المشرف)</h3>
+            <p class="text-xs text-slate-400">تعديل قراءات العداد، الوقود، التواريخ، الركاب، أو الفريق</p>
+          </div>
+        </div>
+        <button onclick="closeModal('editTripModal')" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="editTripForm" onsubmit="handleEditTripSubmit(event)" class="space-y-4">
+        <input type="hidden" id="editTripId">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">السائق</label>
+            <select id="editTripDriver" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"></select>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">المركبة</label>
+            <input type="text" id="editTripVehicle" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">المشروع / الفريق</label>
+            <select id="editTripTeam" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"></select>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">الوجهة أو الغرض</label>
+            <input type="text" id="editTripDestination" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">تاريخ ووقت البدء</label>
+            <input type="datetime-local" id="editTripStartTime" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers">
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">تاريخ ووقت الوصول</label>
+            <input type="datetime-local" id="editTripEndTime" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers">
+          </div>
+        </div>
+
+        <!-- Odometer Readings -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="text-xs font-semibold text-rose-300 block mb-1">عداد البداية (كم)</label>
+            <input type="number" id="editTripStartOdo" required oninput="recalcEditTripDistance()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm font-mono-numbers font-bold text-rose-400">
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-emerald-300 block mb-1">عداد النهاية (كم)</label>
+            <input type="number" id="editTripEndOdo" oninput="recalcEditTripDistance()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm font-mono-numbers font-bold text-emerald-400">
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-cyan-300 block mb-1">المسافة المحسوبة (كم)</label>
+            <input type="number" id="editTripDistance" readonly class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm font-mono-numbers font-extrabold text-cyan-300 cursor-not-allowed">
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">الركاب والمرافقين (افصل بينهم بفاصلة)</label>
+          <input type="text" id="editTripPassengers" placeholder="مثال: منى زكريا، د. رامي" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="text-xs font-semibold text-amber-300 block mb-1">تكلفة الوقود (₪)</label>
+            <input type="number" step="0.5" id="editTripFuelCost" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-amber-300 block mb-1">لترات الوقود</label>
+            <input type="number" step="0.5" id="editTripFuelLiters" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">اسم المحطة</label>
+            <input type="text" id="editTripFuelStation" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">ملاحظات</label>
+          <textarea id="editTripNotes" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"></textarea>
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button type="submit" class="flex-1 py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>حفظ تعديلات الرحلة</span>
+          </button>
+          <button type="button" onclick="closeModal('editTripModal')" class="py-3 px-5 bg-slate-800 text-slate-300 rounded-xl text-xs">
+            إلغاء
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================================================================== -->
+  <!-- MODAL: ADMIN USERS & PERMISSIONS MANAGEMENT (إدارة الحسابات والصلاحيات)-->
+  <!-- ==================================================================== -->
+  <div id="adminUsersModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-card w-full max-w-4xl rounded-2xl border border-slate-700 shadow-2xl p-6 space-y-5 my-8">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center">
+            <i data-lucide="users-cog" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">إدارة الحسابات وتوزيع الصلاحيات (قرى الأطفال SOS)</h3>
+            <p class="text-xs text-slate-400">إنشاء حسابات إدارية، تحديد الصلاحيات، وحسابات السائقين</p>
+          </div>
+        </div>
+        <button onclick="closeModal('adminUsersModal')" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Tabs Switcher for Users Modal -->
+      <div class="flex border-b border-slate-800">
+        <button id="userModalTabAdmins" onclick="switchUserModalTab('admins')" class="px-4 py-2 border-b-2 border-blue-500 text-blue-400 font-bold text-xs flex items-center gap-1.5">
+          <i data-lucide="shield" class="w-4 h-4"></i>
+          <span>الحسابات الإدارية والمشرفين</span>
+        </button>
+        <button id="userModalTabDrivers" onclick="switchUserModalTab('drivers')" class="px-4 py-2 border-b-2 border-transparent text-slate-400 hover:text-white font-bold text-xs flex items-center gap-1.5">
+          <i data-lucide="car" class="w-4 h-4"></i>
+          <span>حسابات السائقين</span>
+        </button>
+      </div>
+
+      <!-- SECTION A: ADMINISTRATIVE USERS & PERMISSIONS -->
+      <div id="usersAdminsSection" class="space-y-4">
+        <!-- Add Administrative User Form -->
+        <form id="newAdminUserForm" onsubmit="handleAddNewAdminUser(event)" class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-3.5">
+          <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+            <i data-lucide="user-plus" class="w-4 h-4 text-emerald-400"></i>
+            <span>إنشاء حساب إداري جديد وتحديد صلاحياته</span>
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+            <input type="text" id="newAdminName" required placeholder="الاسم الكامل (مثال: أ. أحمد رضوان)" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+            <input type="text" id="newAdminUsername" required placeholder="اسم المستخدم (مثال: radwan)" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers">
+            <input type="password" id="newAdminPassword" required placeholder="كلمة المرور" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+            <input type="text" id="newAdminPhone" placeholder="رقم الهاتف" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+          </div>
+
+          <!-- Role Type Selection -->
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">نوع الدور والصلاحية:</label>
+            <select id="newAdminRolePreset" onchange="handleAdminRolePresetChange()" class="w-full sm:w-1/2 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+              <option value="supervisor_readonly">مسؤول السائقين والمتابعة (مراقب - قراءة وعرض فقط - ممنوع التعديل)</option>
+              <option value="admin">مشرف عام (Admin - كامل الصلاحيات في النظام)</option>
+              <option value="custom">مشرف مخصص (تحديد الصلاحيات يدوياً)</option>
+            </select>
+          </div>
+
+          <!-- Granular Permissions Checkboxes -->
+          <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 space-y-2">
+            <span class="text-xs font-bold text-slate-300 block">الصلاحيات الممنوحة لهذا الحساب:</span>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs text-slate-300">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="perm_canViewTrips" checked disabled class="rounded text-rose-600 bg-slate-900 border-slate-700">
+                <span>عرض ومتابعة الرحلات</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="perm_canEditTrips" class="rounded text-rose-600 bg-slate-900 border-slate-700">
+                <span>تعديل بيانات وقراءات الرحلات</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="perm_canDeleteTrips" class="rounded text-rose-600 bg-slate-900 border-slate-700">
+                <span>حذف الرحلات</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="perm_canManageVehicles" class="rounded text-rose-600 bg-slate-900 border-slate-700">
+                <span>تعديل وقود وعدادات المركبات</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="perm_canManageDrivers" class="rounded text-rose-600 bg-slate-900 border-slate-700">
+                <span>إضافة وتعديل وحذف السائقين</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="perm_canExportExcel" checked class="rounded text-rose-600 bg-slate-900 border-slate-700">
+                <span>تصدير ملفات Excel والطباعة</span>
+              </label>
+            </div>
+          </div>
+
+          <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5">
+            <i data-lucide="user-check" class="w-4 h-4"></i>
+            <span>حفظ وإنشاء الحساب الإداري</span>
+          </button>
+        </form>
+
+        <!-- Administrative Staff Table -->
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="w-full text-right text-xs">
+            <thead class="bg-slate-900 text-slate-300">
+              <tr>
+                <th class="p-2.5">الاسم</th>
+                <th class="p-2.5">اسم المستخدم</th>
+                <th class="p-2.5">الدور</th>
+                <th class="p-2.5">الصلاحيات</th>
+                <th class="p-2.5 text-center">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="adminStaffTableBody" class="divide-y divide-slate-800 text-slate-300"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SECTION B: DRIVERS -->
+      <div id="usersDriversSection" class="hidden space-y-4">
+        <!-- Add Driver Form -->
+        <form id="newDriverForm" onsubmit="handleAddNewDriver(event)" class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-3">
+          <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+            <i data-lucide="user-plus" class="w-4 h-4 text-emerald-400"></i>
+            <span>إضافة سائق جديد للنظام المركزي</span>
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <input type="text" id="newDriverName" required placeholder="الاسم الكامل (مثال: رامي سعيد)" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+            <input type="text" id="newDriverUsername" required placeholder="اسم المستخدم (مثال: rami)" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers">
+            <input type="password" id="newDriverPassword" required placeholder="كلمة المرور (مثال: 1234)" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <input type="text" id="newDriverVehicle" required placeholder="المركبة (مثال: اسكودا أو تويوتا هايلوكس)" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+            <input type="text" id="newDriverPhone" placeholder="رقم الهاتف (مثال: 0599123456)" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+          </div>
+          <button type="submit" id="addDriverSubmitBtn" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>حفظ وإضافة السائق للسيرفر المركزي</span>
+          </button>
+        </form>
+
+        <!-- Drivers Table -->
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="w-full text-right text-xs">
+            <thead class="bg-slate-900 text-slate-300">
+              <tr>
+                <th class="p-2.5">الاسم</th>
+                <th class="p-2.5">اسم المستخدم</th>
+                <th class="p-2.5">المركبة</th>
+                <th class="p-2.5">الهاتف</th>
+                <th class="p-2.5 text-center">الرحلات</th>
+                <th class="p-2.5 text-center">إجراءات المشرف</th>
+              </tr>
+            </thead>
+            <tbody id="adminDriversTableBody" class="divide-y divide-slate-800 text-slate-300"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: FORGOT PASSWORD                     -->
+  <!-- ========================================== -->
+  <div id="forgotPasswordModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-card w-full max-w-sm rounded-2xl border border-slate-700 p-6 space-y-4 text-center">
+      <div class="w-12 h-12 mx-auto rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
+        <i data-lucide="key" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-white">استعادة كلمة المرور</h3>
+        <p class="text-xs text-slate-400">أدخل اسم المستخدم أو رقم الهاتف المسجل</p>
+      </div>
+
+      <form id="forgotPasswordForm" onsubmit="handleForgotPasswordSubmit(event)" class="space-y-3 text-right">
+        <div>
+          <label class="text-xs text-slate-300 block mb-1">اسم المستخدم أو رقم الهاتف</label>
+          <input type="text" id="forgotUserInput" required placeholder="مثال: ahmed أو 0599111222" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white">
+        </div>
+        <div id="forgotNewPasswordContainer" class="hidden space-y-2 pt-2 border-t border-slate-800">
+          <p class="text-xs text-emerald-400 font-semibold" id="forgotFoundUserMsg"></p>
+          <label class="text-xs text-slate-300 block mb-1">اكتب كلمة المرور الجديدة</label>
+          <input type="password" id="forgotNewPassword" placeholder="كلمة المرور الجديدة..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button type="submit" id="forgotSubmitBtn" class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs transition-colors">
+            تحقق واستعادة
+          </button>
+          <button type="button" onclick="closeModal('forgotPasswordModal')" class="py-2.5 px-4 rounded-xl bg-slate-800 text-slate-300 text-xs">
+            إلغاء
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: ADMIN TEAMS / PROJECTS MANAGEMENT   -->
+  <!-- ========================================== -->
+  <div id="adminTeamsModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-card w-full max-w-md rounded-2xl border border-slate-700 p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="folder-plus" class="w-5 h-5 text-amber-400"></i>
+          <h3 class="text-base font-bold text-white">مشاريع وفرق قرى الأطفال SOS</h3>
+        </div>
+        <button onclick="closeModal('adminTeamsModal')" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-right">
+        <label class="text-xs text-slate-400 block">إضافة مشروع أو فريق جديد</label>
+        <div class="flex gap-2">
+          <input type="text" id="newTeamInput" placeholder="مثال: فريق طوارئ الشتاء" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+          <button type="button" onclick="handleAddNewTeam()" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold">
+            إضافة
+          </button>
+        </div>
+
+        <div class="pt-2">
+          <span class="text-xs text-slate-400 block mb-2">الفرق والمشاريع المعتمدة حالياً:</span>
+          <div id="adminTeamsList" class="space-y-1.5 max-h-52 overflow-y-auto"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: VIEW TRIP DETAILS & PHOTOS          -->
+  <!-- ========================================== -->
+  <div id="tripDetailsModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-card w-full max-w-2xl rounded-2xl border border-slate-800 shadow-2xl p-6 space-y-5 my-8 relative">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-rose-600/20 text-rose-400 flex items-center justify-center">
+            <i data-lucide="eye" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white" id="modalDetailTitle">تفاصيل الرحلة والتوثيق</h3>
+            <p class="text-xs text-slate-400" id="modalDetailSubtitle">-</p>
+          </div>
+        </div>
+        <button onclick="closeModal('tripDetailsModal')" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div id="tripDetailsBody" class="space-y-4 text-xs"></div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 1: SUPERVISOR DISPATCH / BOOK TRIP FOR DRIVER      -->
+  <!-- (مشرف يفتح رحلة أو حجز للسائق)                           -->
+  <!-- ======================================================== -->
+  <div id="dispatchTripModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-card w-full max-w-lg rounded-2xl border border-rose-500/30 shadow-2xl p-6 space-y-4 my-8">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-600 to-amber-600 text-white flex items-center justify-center shadow-md">
+            <i data-lucide="send" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">فتح وتكليف رحلة لسائق (حجز مسبق)</h3>
+            <p class="text-xs text-slate-400">إرسال تفاصيل المهمة والوجهة للسائق لتأكيد الجاهزية والاستلام</p>
+          </div>
+        </div>
+        <button onclick="closeModal('dispatchTripModal')" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleDispatchTripSubmit(event)" class="space-y-3.5 text-xs">
+        <!-- Vehicle Selection (فعالة ونشطة وتظهر حالة السيارة) -->
+        <div>
+          <label class="font-semibold text-slate-300 block mb-1">اختيار المركبة للرحلة <span class="text-rose-400">*</span></label>
+          <select id="dispatchVehicle" onchange="handleDispatchVehicleChange()" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-mono-numbers focus:ring-2 focus:ring-rose-500 focus:outline-none">
+            <option value="">اختر المركبة من أسطول SOS...</option>
+          </select>
+          <p id="dispatchVehicleStatusNotice" class="text-[11px] text-emerald-400 mt-1 font-semibold"></p>
+        </div>
+
+        <!-- Driver Selection -->
+        <div>
+          <label class="font-semibold text-slate-300 block mb-1">تعيين السائق المكلف <span class="text-rose-400">*</span></label>
+          <select id="dispatchDriver" onchange="handleDispatchDriverChange()" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-medium focus:ring-2 focus:ring-rose-500 focus:outline-none">
+            <option value="">اختر السائق من القائمة...</option>
+          </select>
+          <div id="dispatchDriverStatusWarning" class="hidden text-[11px] mt-1.5 p-2 rounded-lg font-semibold"></div>
+        </div>
+
+        <!-- Team / Project -->
+        <div>
+          <label class="font-semibold text-slate-300 block mb-1">المشروع / الفريق <span class="text-rose-400">*</span></label>
+          <select id="dispatchTeam" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-medium focus:ring-2 focus:ring-rose-500 focus:outline-none">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+
+        <!-- Destination / Route -->
+        <div>
+          <label class="font-semibold text-slate-300 block mb-1">خط السير والوجهة المحددة <span class="text-rose-400">*</span></label>
+          <input type="text" id="dispatchDestination" required placeholder="مثال: من مقر SOS إلى خان يونس ودير البلح" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white placeholder-slate-500 focus:ring-2 focus:ring-rose-500 focus:outline-none">
+        </div>
+
+        <!-- Passengers -->
+        <div>
+          <label class="font-semibold text-slate-300 block mb-1">أسماء الركاب والموظفين المرافقين</label>
+          <input type="text" id="dispatchPassengers" placeholder="مثال: منسق الطوارئ، مسؤول البرامج (افصل بفواصل)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white placeholder-slate-500 focus:ring-2 focus:ring-rose-500 focus:outline-none">
+        </div>
+
+        <!-- Scheduled Departure Date & Time -->
+        <div>
+          <label class="font-semibold text-slate-300 block mb-1">موعد الانطلاق المقترح / وقت الرحلة</label>
+          <input type="datetime-local" id="dispatchScheduledTime" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono-numbers focus:ring-2 focus:ring-rose-500 focus:outline-none">
+        </div>
+
+        <!-- Notes / Instructions -->
+        <div>
+          <label class="font-semibold text-slate-300 block mb-1">تعليمات وتوجيهات خاصة للسائق</label>
+          <textarea id="dispatchNotes" rows="2" placeholder="أي تعليمات خاصة بالحمولة أو مواعيد التواجد..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white placeholder-slate-500 focus:ring-2 focus:ring-rose-500 focus:outline-none"></textarea>
+        </div>
+
+        <!-- Actions -->
+        <div class="pt-3 flex gap-2">
+          <button type="submit" id="dispatchSubmitBtn" class="flex-1 py-3 px-4 bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-bold rounded-xl shadow-lg shadow-rose-950/40 flex items-center justify-center gap-2 transition-all">
+            <i data-lucide="send" class="w-4 h-4"></i>
+            <span>إرسال التكليف وإشعار السائق 🚀</span>
+          </button>
+          <button type="button" onclick="closeModal('dispatchTripModal')" class="py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors">
+            إلغاء
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 2: DRIVER IN-APP DISPATCH ALERT WITH CHIME         -->
+  <!-- (إشعار السائق الفوري وتأكيد استلام الرحلة والجاهزية)     -->
+  <!-- ======================================================== -->
+  <div id="driverDispatchAlertModal" class="fixed inset-0 z-[60] bg-black/90 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-card w-full max-w-md rounded-3xl border-2 border-rose-500/80 shadow-2xl shadow-rose-950/80 p-6 space-y-5 my-8 relative overflow-hidden animate-in fade-in zoom-in duration-300">
+      <!-- Ambient Glow -->
+      <div class="absolute -top-12 -right-12 w-36 h-36 bg-rose-500/20 rounded-full blur-2xl pointer-events-none"></div>
+      <div class="absolute -bottom-12 -left-12 w-36 h-36 bg-amber-500/20 rounded-full blur-2xl pointer-events-none"></div>
+
+      <div class="text-center space-y-2">
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-rose-600 to-amber-600 text-white flex items-center justify-center shadow-lg shadow-rose-600/40 animate-bounce">
+          <i data-lucide="bell-ring" class="w-8 h-8"></i>
+        </div>
+        <h3 class="text-xl font-extrabold text-white">تكليف وحجز رحلة جديدة! 🚗</h3>
+        <p class="text-xs text-rose-300">تم تكليفك بمهمة ميدانية جديدة من المشرف، يرجى تأكيد استلامك وجاهزيتك</p>
+      </div>
+
+      <!-- Dispatched Trip Card Preview -->
+      <div id="dispatchAlertCardDetails" class="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 space-y-3 text-xs">
+        <!-- Rendered via JS -->
+      </div>
+
+      <!-- Driver Response Buttons -->
+      <div class="space-y-2.5 pt-1">
+        <button id="driverAcceptDispatchBtn" type="button" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-sm shadow-lg shadow-emerald-950/50 flex items-center justify-center gap-2 transition-all transform active:scale-95">
+          <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+          <span>تأكيد الاستلام والجاهزية (متاح) ✅</span>
+        </button>
+
+        <button id="driverRejectDispatchBtn" type="button" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-rose-500/40 text-rose-300 font-bold text-xs flex items-center justify-center gap-2 transition-colors">
+          <i data-lucide="x-circle" class="w-4 h-4 text-rose-400"></i>
+          <span>اعتذار عن الرحلة (غير متاح) ❌</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 3: DRIVER REJECTION REASON MODAL                   -->
+  <!-- ======================================================== -->
+  <div id="driverRejectModal" class="fixed inset-0 z-[70] bg-black/90 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-card w-full max-w-sm rounded-2xl border border-rose-500/50 p-5 space-y-4">
+      <div class="flex items-center gap-2.5 text-rose-400 border-b border-slate-800 pb-3">
+        <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+        <h4 class="text-sm font-bold text-white">تأكيد الاعتذار وتحديد السبب</h4>
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        يرجى توضيح سبب عدم إمكانية تنفيذ الرحلة ليتمكن المشرف من إعادة التكليف لسائق آخر:
+      </p>
+
+      <div class="space-y-2">
+        <select id="rejectReasonPreset" onchange="handleRejectReasonPresetChange()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+          <option value="المركبة في الصيانة أو الفحص الفني">المركبة في الصيانة أو الفحص الفني</option>
+          <option value="مرتبط بمهمة ميدانية سابقة لم تنتهِ بعد">مرتبط بمهمة ميدانية سابقة لم تنتهِ بعد</option>
+          <option value="خارج نطاق ساعات الدوام الرسمي المعتمد">خارج نطاق ساعات الدوام الرسمي المعتمد</option>
+          <option value="إجازة رسمية أو ظرف طارئ">إجازة رسمية أو ظرف طارئ</option>
+          <option value="CUSTOM">سبب آخر (كتابة يدوية)...</option>
+        </select>
+        <textarea id="rejectReasonCustom" rows="2" placeholder="اكتب السبب هنا..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 hidden"></textarea>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button type="button" onclick="confirmDriverRejectSubmission()" class="flex-1 py-2.5 px-3 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs transition-colors">
+          تأكيد إرسال الاعتذار
+        </button>
+        <button type="button" onclick="closeModal('driverRejectModal')" class="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs transition-colors">
+          تراجع
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 4: ADMIN QUICK EDIT END ODOMETER & CLOSE TRIP     -->
+  <!-- (تحكم المشرف في نهاية العداد وتعديله للرحلة)             -->
+  <!-- ======================================================== -->
+  <div id="quickEditEndOdoModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-card w-full max-w-md rounded-2xl border border-emerald-500/40 p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+            <i data-lucide="gauge" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">تعديل قراءة نهاية العداد</h3>
+            <p class="text-xs text-slate-400" id="quickEditSubtitle">إغلاق الرحلة أو تصحيح الكيلومترات</p>
+          </div>
+        </div>
+        <button onclick="closeModal('quickEditEndOdoModal')" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleQuickEndOdoSubmit(event)" class="space-y-4 text-xs">
+        <input type="hidden" id="quickEditTripId">
+
+        <div class="bg-slate-950/70 p-3 rounded-xl border border-slate-800 space-y-1.5">
+          <div class="flex justify-between text-slate-400">
+            <span>السائق:</span>
+            <span class="text-white font-bold" id="quickEditDriverName">-</span>
+          </div>
+          <div class="flex justify-between text-slate-400">
+            <span>المشروع / الفريق:</span>
+            <span class="text-rose-300 font-bold" id="quickEditTeam">-</span>
+          </div>
+          <div class="flex justify-between text-slate-400">
+            <span>عداد البداية الموثق:</span>
+            <span class="text-cyan-300 font-mono-numbers font-bold" id="quickEditStartOdoDisplay">0 كم</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="font-bold text-white block mb-1">قراءة نهاية العداد (كم) <span class="text-emerald-400">*</span></label>
+          <div class="relative">
+            <input type="number" id="quickEditEndOdoInput" oninput="calculateQuickEndDistance()" required step="1" min="0" placeholder="أدخل عداد النهاية..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-lg font-mono-numbers font-bold text-emerald-400 placeholder-slate-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <span class="absolute left-3 top-3.5 text-xs text-slate-400 font-bold">كم</span>
+          </div>
+        </div>
+
+        <div class="bg-emerald-950/30 border border-emerald-800/40 rounded-xl p-3 flex items-center justify-between">
+          <span class="text-slate-300 font-bold">إجمالي المسافة المقطوعة:</span>
+          <span class="text-base font-black font-mono-numbers text-emerald-300" id="quickEditCalculatedDistance">0 كم</span>
+        </div>
+
+        <div>
+          <label class="text-slate-400 block mb-1">وقت وتاريخ إنهاء الرحلة</label>
+          <input type="datetime-local" id="quickEditEndTime" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono-numbers text-xs">
+        </div>
+
+        <div class="pt-2 flex gap-2">
+          <button type="submit" class="flex-1 py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg transition-colors flex items-center justify-center gap-1.5">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>حفظ نهاية العداد واعتماد الرحلة 💾</span>
+          </button>
+          <button type="button" onclick="closeModal('quickEditEndOdoModal')" class="py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors">
+            إلغاء
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 5: CUSTOM DELETE TRIP CONFIRMATION MODAL          -->
+  <!-- (متوافق 100% مع الجوال بدون مشاكل confirm المتصفح)       -->
+  <!-- ======================================================== -->
+  <div id="deleteTripConfirmModal" class="fixed inset-0 z-[80] bg-black/90 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-card w-full max-w-sm rounded-2xl border-2 border-rose-600/70 p-6 space-y-4 text-center shadow-2xl">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-rose-600/20 text-rose-400 flex items-center justify-center">
+        <i data-lucide="trash-2" class="w-7 h-7"></i>
+      </div>
+      <div>
+        <h4 class="text-base font-bold text-white">تأكيد حذف الرحلة نهائياً</h4>
+        <p class="text-xs text-slate-400 mt-1">هل أنت متأكد من رغبتك في حذف هذه الرحلة من سجل أسطول قرى الأطفال SOS؟</p>
+      </div>
+
+      <div id="deleteTripSummaryBox" class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 text-xs text-right space-y-1">
+        <!-- Trip details populated by JS -->
+      </div>
+
+      <p class="text-[11px] text-rose-400/90 font-medium">⚠️ هذا الإجراء نهائي ولا يمكن التراجع عنه.</p>
+
+      <div class="flex gap-2 pt-2">
+        <button id="confirmExecuteDeleteBtn" type="button" class="flex-1 py-3 px-4 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-rose-950/60 transition-colors flex items-center justify-center gap-1.5">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+          <span>نعم، حذف الرحلة نهائياً</span>
+        </button>
+        <button type="button" onclick="closeModal('deleteTripConfirmModal')" class="py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition-colors">
+          إلغاء
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: ADD FUEL LOG (تسجيل تعبئة سولار)    -->
+  <!-- ========================================== -->
+  <div id="addFuelLogModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-card w-full max-w-lg rounded-2xl border border-amber-500/40 shadow-2xl p-6 space-y-5 my-8 relative">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+            <i data-lucide="fuel" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">تسجيل تعبئة سولار جديدة</h3>
+            <p class="text-xs text-slate-400">توثيق نوع العربية وكمية السولار وتاريخ ووقت التعبئة</p>
+          </div>
+        </div>
+        <button onclick="closeModal('addFuelLogModal')" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="addFuelLogForm" onsubmit="handleAddFuelLogSubmit(event)" class="space-y-4">
+        <!-- Vehicle Selection -->
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">نوع العربية / المركبة <span class="text-rose-500">*</span></label>
+          <div class="flex gap-2">
+            <select id="addFuelVehicleSelect" onchange="handleAddFuelVehicleChange()" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white">
+              <option value="">اختر نوع العربية من الأسطول...</option>
+            </select>
+            <input type="text" id="addFuelVehicleCustom" placeholder="اكتب نوع العربية..." class="hidden w-1/2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white">
+          </div>
+        </div>
+
+        <!-- Liters and DateTime -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">
+              <i data-lucide="droplet" class="w-3.5 h-3.5 inline text-amber-400 ml-1"></i>
+              <span>كمية السولار (لتر)</span> <span class="text-rose-500">*</span>
+            </label>
+            <input type="number" id="addFuelLiters" step="0.5" min="1" max="500" required placeholder="مثال: 50" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers text-left">
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">
+              <i data-lucide="calendar" class="w-3.5 h-3.5 inline text-sky-400 ml-1"></i>
+              <span>تاريخ ووقت التعبئة</span> <span class="text-rose-500">*</span>
+            </label>
+            <input type="datetime-local" id="addFuelDateTime" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers">
+          </div>
+        </div>
+
+        <!-- Source Selector (محطة خارجية vs مخزون القرية الداخلي) -->
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1.5">
+            <i data-lucide="fuel" class="w-3.5 h-3.5 inline text-amber-400 ml-1"></i>
+            <span>مصدر السولار (من أين تم التزويد بالوقود؟)</span>
+          </label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 cursor-pointer transition-colors has-[:checked]:border-amber-500 has-[:checked]:bg-amber-950/30">
+              <input type="radio" name="addFuelSourceRadio" value="station" checked onchange="toggleAddFuelSource('station')" class="text-amber-500">
+              <span class="text-xs font-bold text-amber-200">⛽ محطة وقود خارجية</span>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-sky-500/50 cursor-pointer transition-colors has-[:checked]:border-sky-500 has-[:checked]:bg-sky-950/30">
+              <input type="radio" name="addFuelSourceRadio" value="village_stock" onchange="toggleAddFuelSource('village_stock')" class="text-sky-400">
+              <span class="text-xs font-bold text-sky-200">🏛️ مخزون القرية (خزان SOS)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Odometer and Station -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">
+              <i data-lucide="gauge" class="w-3.5 h-3.5 inline text-emerald-400 ml-1"></i>
+              <span>قراءة العداد الحالية (كم)</span>
+            </label>
+            <input type="number" id="addFuelOdometer" step="1" min="0" placeholder="قراءة العداد..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers text-left">
+          </div>
+          <div id="addFuelStationContainer">
+            <label class="text-xs font-semibold text-slate-300 block mb-1">
+              <i data-lucide="map-pin" class="w-3.5 h-3.5 inline text-rose-400 ml-1"></i>
+              <span id="addFuelStationLabel">محطة الوقود</span>
+            </label>
+            <input type="text" id="addFuelStation" placeholder="مثال: محطة الهدى..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+          </div>
+        </div>
+
+        <!-- Cost and Notes -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">
+              <i data-lucide="coins" class="w-3.5 h-3.5 inline text-amber-400 ml-1"></i>
+              <span>التكلفة الإجمالية (شيكل - اختياري)</span>
+            </label>
+            <input type="number" id="addFuelCost" step="1" min="0" placeholder="المبلغ بالشيكل..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers text-left">
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">ملاحظات إضافية</label>
+            <input type="text" id="addFuelNotes" placeholder="أي تفاصيل أو ملاحظات..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+          <button type="button" onclick="closeModal('addFuelLogModal')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all">إلغاء</button>
+          <button type="submit" id="addFuelSubmitBtn" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-amber-900/40 transition-all">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>حفظ وتوثيق التعبئة ⛽</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: EDIT FUEL LOG (خاص بـ admin فقط)    -->
+  <!-- ========================================== -->
+  <div id="editFuelLogModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-card w-full max-w-lg rounded-2xl border border-blue-500/40 shadow-2xl p-6 space-y-5 my-8 relative">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
+            <i data-lucide="edit-3" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">تعديل سجل تعبئة السولار (المشرف العام)</h3>
+            <p class="text-xs text-slate-400">خاص بحساب المشرف العام admin حصراً</p>
+          </div>
+        </div>
+        <button onclick="closeModal('editFuelLogModal')" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="editFuelLogForm" onsubmit="handleEditFuelLogSubmit(event)" class="space-y-4">
+        <input type="hidden" id="editFuelLogId">
+        
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">نوع العربية / المركبة</label>
+          <input type="text" id="editFuelVehicle" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">كمية السولار (لتر)</label>
+            <input type="number" id="editFuelLiters" step="0.5" min="1" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers text-left">
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">تاريخ ووقت التعبئة</label>
+            <input type="datetime-local" id="editFuelDateTime" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers">
+          </div>
+        </div>
+
+        <!-- Source Selector (محطة خارجية vs مخزون القرية الداخلي) -->
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1.5">
+            <i data-lucide="fuel" class="w-3.5 h-3.5 inline text-blue-400 ml-1"></i>
+            <span>مصدر السولار</span>
+          </label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 cursor-pointer transition-colors has-[:checked]:border-amber-500 has-[:checked]:bg-amber-950/30">
+              <input type="radio" name="editFuelSourceRadio" value="station" checked onchange="toggleEditFuelSource('station')" class="text-amber-500">
+              <span class="text-xs font-bold text-amber-200">⛽ محطة وقود خارجية</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-sky-500/50 cursor-pointer transition-colors has-[:checked]:border-sky-500 has-[:checked]:bg-sky-950/30">
+              <input type="radio" name="editFuelSourceRadio" value="village_stock" onchange="toggleEditFuelSource('village_stock')" class="text-sky-400">
+              <span class="text-xs font-bold text-sky-200">🏛️ مخزون القرية (خزان SOS)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">قراءة العداد (كم)</label>
+            <input type="number" id="editFuelOdometer" step="1" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers text-left">
+          </div>
+          <div id="editFuelStationContainer">
+            <label id="editFuelStationLabel" class="text-xs font-semibold text-slate-300 block mb-1">محطة الوقود</label>
+            <input type="text" id="editFuelStation" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">التكلفة (شيكل)</label>
+            <input type="number" id="editFuelCost" step="1" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers text-left">
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">ملاحظات</label>
+            <input type="text" id="editFuelNotes" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+          <button type="button" onclick="closeModal('editFuelLogModal')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all">إلغاء</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-2 transition-all">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>تحديث السجل 💾</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: ADD PURCHASE INVOICE (تسجيل فاتورة) -->
+  <!-- ========================================== -->
+  <div id="addPurchaseModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-card w-full max-w-lg rounded-2xl border border-emerald-500/40 shadow-2xl p-6 space-y-5 my-8 relative">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+            <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">تسجيل فاتورة مشتريات / قطع غيار جديدة</h3>
+            <p class="text-xs text-slate-400">إضافة الفاتورة مباشرة لحساب السيارة المحددة وتحديث الرصيد</p>
+          </div>
+        </div>
+        <button onclick="closeModal('addPurchaseModal')" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="addPurchaseForm" onsubmit="handleAddPurchaseSubmit(event)" class="space-y-4">
+        <!-- Vehicle Select -->
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">السيارة المستفيدة <span class="text-rose-500">*</span></label>
+          <select id="addPurchVehicleSelect" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white">
+            <option value="">اختر السيارة من الأسطول...</option>
+          </select>
+        </div>
+
+        <!-- Item Type & Description -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">تصنيف المشترى</label>
+            <select id="addPurchItemType" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+              <option value="قطع غيار وصيانة">قطع غيار وصيانة</option>
+              <option value="إطارات وبطاريات">إطارات وبطاريات</option>
+              <option value="ترخيص وتأمين">ترخيص وتأمين</option>
+              <option value="زيوت وفلاتر">زيوت وفلاتر</option>
+              <option value="تجهيزات وفرش">تجهيزات وفرش</option>
+              <option value="أخرى">أخرى</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">
+              <span>التكلفة الإجمالية (شيكل)</span> <span class="text-rose-500">*</span>
+            </label>
+            <input type="number" id="addPurchCost" step="1" min="1" required placeholder="المبلغ بالشيكل..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers text-left">
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">بيان المشترى / تفاصيل القطعة <span class="text-rose-500">*</span></label>
+          <input type="text" id="addPurchDescription" required placeholder="مثال: طقم بريكات أمامي + تغيير فلتر هواء..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white">
+        </div>
+
+        <!-- Supplier & Invoice No -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">اسم المحل / المورد</label>
+            <input type="text" id="addPurchSupplier" placeholder="مثال: شركة القدس لقطع الغيار..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">رقم الفاتورة / الوصل</label>
+            <input type="text" id="addPurchInvoiceNo" placeholder="مثال: INV-5421..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers">
+          </div>
+        </div>
+
+        <!-- Date & Odometer -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">تاريخ الفاتورة</label>
+            <input type="date" id="addPurchDate" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers">
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">قراءة العداد الحالية (كم)</label>
+            <input type="number" id="addPurchOdometer" step="1" placeholder="عداد السيارة وقت الشراء..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers text-left">
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">ملاحظات إضافية</label>
+          <input type="text" id="addPurchNotes" placeholder="أي تفاصيل أو ملاحظات حول الفاتورة..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+          <button type="button" onclick="closeModal('addPurchaseModal')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all">إلغاء</button>
+          <button type="submit" id="addPurchSubmitBtn" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-900/40 transition-all">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>حفظ الفاتورة وإضافتها للحساب 🛒</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: SET VEHICLE DAILY RENTAL RATE (تحديد تسعيرة الإيجار اليومي)-->
+  <!-- ============================================================== -->
+  <div id="setVehiclePriceModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-card w-full max-w-md rounded-2xl border border-sky-500/40 shadow-2xl p-6 space-y-5 my-8 relative">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center border border-sky-500/30">
+            <i data-lucide="tag" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">تحديد وضبط تسعيرة الإيجار اليومي للسيارة</h3>
+            <p class="text-xs text-slate-400">تحديد تسعيرة الإيجار اليومي للمركبة (شيكل/يوم) ليتم احتسابها على الفريق صاحب أول طلعة</p>
+          </div>
+        </div>
+        <button onclick="closeModal('setVehiclePriceModal')" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="setVehiclePriceForm" onsubmit="handleSetVehiclePriceSubmit(event)" class="space-y-4">
+        <input type="hidden" id="setPriceVehicleId">
+
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">المركبة</label>
+          <input type="text" id="setPriceVehicleName" readonly class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-bold cursor-not-allowed">
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">
+            <span>تسعيرة الإيجار اليومي للمركبة (شيكل / يوم)</span> <span class="text-rose-500">*</span>
+          </label>
+          <input type="number" id="setPriceAmount" required step="5" min="0" placeholder="مثال: 200 أو 250" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-sm text-sky-300 font-mono-numbers font-bold text-left focus:border-sky-500">
+          <span class="text-[10px] text-slate-400 mt-1 block">تُحسب هذه التسعيرة على أول طلعة للسيارة في كل يوم عمل لصالح الفريق المستفيد.</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">سنة الصنع / الموديل</label>
+            <input type="text" id="setPriceModelYear" placeholder="مثال: 2022" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers">
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">رقم الشاصي (اختياري)</label>
+            <input type="text" id="setPriceChassis" placeholder="VIN..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono-numbers">
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">ملاحظات التسعيرة والإيجار</label>
+          <input type="text" id="setPriceNotes" placeholder="أي شروط أو تفاصيل عن تسعيرة الإيجار..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white">
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+          <button type="button" onclick="closeModal('setVehiclePriceModal')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all">إلغاء</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-sky-900/40 transition-all">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>حفظ تسعيرة الإيجار اليومي 💾</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: VEHICLE LEDGER (كشف حساب وتشغيل السيارة والإيجار)       -->
+  <!-- ============================================================== -->
+  <div id="vehicleLedgerModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-card w-full max-w-3xl rounded-2xl border border-emerald-500/40 shadow-2xl p-6 space-y-5 my-8 relative">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+            <i data-lucide="car" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span>كشف حساب وتشغيل السيارة:</span>
+              <span id="ledgerVehicleTitle" class="text-emerald-400 font-bold">-</span>
+            </h3>
+            <p class="text-xs text-slate-400">تسعيرة الإيجار اليومي، أيام العمل المحتسبة على الفرق، وفواتير المشتريات والصيانة</p>
+          </div>
+        </div>
+        <button onclick="closeModal('vehicleLedgerModal')" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Financial Summary Box (5 KPIs) -->
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-center">
+        <div>
+          <span class="text-[10px] text-slate-400 block mb-0.5">تسعيرة الإيجار 🏷️</span>
+          <div id="ledgerDailyRate" class="text-sm font-black font-mono-numbers text-sky-400">0 ₪/يوم</div>
+        </div>
+        <div>
+          <span class="text-[10px] text-slate-400 block mb-0.5">أيام العمل 📅</span>
+          <div id="ledgerOperatingDays" class="text-sm font-black font-mono-numbers text-sky-300">0 يوم</div>
+        </div>
+        <div>
+          <span class="text-[10px] text-slate-400 block mb-0.5">إجمالي الإيجار 💰</span>
+          <div id="ledgerRentalTotal" class="text-sm font-black font-mono-numbers text-emerald-400">0 ₪</div>
+        </div>
+        <div>
+          <span class="text-[10px] text-slate-400 block mb-0.5">فواتير الصيانة 🛒</span>
+          <div id="ledgerPurchasesTotal" class="text-sm font-black font-mono-numbers text-amber-400">0 ₪</div>
+        </div>
+        <div class="col-span-2 sm:col-span-1 border-t sm:border-t-0 sm:border-r border-slate-800 pt-1.5 sm:pt-0 sm:pr-2">
+          <span class="text-[10px] text-emerald-300 font-bold block mb-0.5">الإجمالي الكامل 💎</span>
+          <div id="ledgerGrandTotal" class="text-sm font-black font-mono-numbers text-emerald-300">0 ₪</div>
+        </div>
+      </div>
+
+      <!-- Section 1: Operating Days Log (سجل أيام التشغيل والفرق المستفيدة) -->
+      <div class="space-y-2">
+        <h5 class="text-xs font-bold text-white flex items-center justify-between">
+          <span class="flex items-center gap-1.5">
+            <i data-lucide="calendar" class="w-3.5 h-3.5 text-sky-400"></i>
+            <span>سجل أيام تشغيل السيارة والفرق المحتسب عليها الإيجار (أول طلعة)</span>
+          </span>
+          <span id="ledgerDaysBadge" class="text-[11px] text-sky-400 font-mono-numbers">0 يوم</span>
+        </h5>
+        <div class="overflow-x-auto max-h-48 overflow-y-auto rounded-xl border border-slate-800">
+          <table class="w-full text-right text-xs">
+            <thead class="bg-slate-900 sticky top-0 text-slate-300 border-b border-slate-800">
+              <tr>
+                <th class="p-2.5">التاريخ 📅</th>
+                <th class="p-2.5">الفريق المحتسب عليه 👥</th>
+                <th class="p-2.5">السائق 👤</th>
+                <th class="p-2.5">الوجهة ومسار الرحلة 📍</th>
+                <th class="p-2.5 font-mono-numbers text-emerald-400">قيمة الإيجار المحتسب 🏷️</th>
+              </tr>
+            </thead>
+            <tbody id="ledgerDaysTbody" class="divide-y divide-slate-800/60 text-slate-300"></tbody>
+          </table>
+        </div>
+        <div id="noLedgerDaysNotice" class="p-3 text-center text-slate-500 hidden text-xs">
+          لا توجد أيام تشغيل مسجلة لهذه السيارة حتى الآن.
+        </div>
+      </div>
+
+      <!-- Section 2: Invoices for this car -->
+      <div class="space-y-2">
+        <h5 class="text-xs font-bold text-white flex items-center justify-between">
+          <span class="flex items-center gap-1.5">
+            <i data-lucide="receipt" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span>فواتير المشتريات والصيانة المسجلة على هذه السيارة</span>
+          </span>
+          <span id="ledgerInvoicesBadge" class="text-[11px] text-amber-400 font-mono-numbers">0 فاتورة</span>
+        </h5>
+        <div class="overflow-x-auto max-h-44 overflow-y-auto rounded-xl border border-slate-800">
+          <table class="w-full text-right text-xs">
+            <thead class="bg-slate-900 sticky top-0 text-slate-300 border-b border-slate-800">
+              <tr>
+                <th class="p-2.5">التاريخ</th>
+                <th class="p-2.5">بيان المشترى</th>
+                <th class="p-2.5">التصنيف</th>
+                <th class="p-2.5">المورد</th>
+                <th class="p-2.5 font-mono-numbers text-amber-400">المبلغ (₪)</th>
+              </tr>
+            </thead>
+            <tbody id="ledgerInvoicesTbody" class="divide-y divide-slate-800/60 text-slate-300"></tbody>
+          </table>
+        </div>
+        <div id="noLedgerInvoicesNotice" class="p-3 text-center text-slate-500 hidden text-xs">
+          لا توجد فواتير صيانة مسجلة على هذه السيارة بعد.
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-3 border-t border-slate-800 text-xs">
+        <button type="button" onclick="openAddPurchaseModal(currentLedgerVehicleName)" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex items-center gap-1.5 transition-all">
+          <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+          <span>إضافة فاتورة لهذه السيارة 🛒</span>
+        </button>
+        <button type="button" onclick="closeModal('vehicleLedgerModal')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold transition-all">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: TEAM LEDGER (كشف حساب إيجار الفريق / المشروع)           -->
+  <!-- ============================================================== -->
+  <div id="teamLedgerModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-card w-full max-w-2xl rounded-2xl border border-sky-500/40 shadow-2xl p-6 space-y-5 my-8 relative">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center border border-sky-500/30">
+            <i data-lucide="layers" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span>كشف حساب إيجار الفريق / المشروع:</span>
+              <span id="teamLedgerTitle" class="text-sky-400 font-bold">-</span>
+            </h3>
+            <p class="text-xs text-slate-400">توثيق أيام تشغيل سيارات الأسطول المحتسبة على هذا الفريق (صاحب أول طلعة باليوم) وتكلفة الإيجار</p>
+          </div>
+        </div>
+        <button onclick="closeModal('teamLedgerModal')" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Team Financial Summary Box -->
+      <div class="grid grid-cols-3 gap-3 p-4 rounded-xl bg-slate-950 border border-slate-800 text-center">
+        <div>
+          <span class="text-[11px] text-slate-400 block mb-1">أيام الإيجار المحتسبة 📅</span>
+          <div id="teamLedgerDaysCount" class="text-xl font-black font-mono-numbers text-sky-400">0 يوم</div>
+          <span class="text-[10px] text-slate-500 mt-0.5 block">أيام كان فيها الفريق صاحب أول طلعة</span>
+        </div>
+        <div>
+          <span class="text-[11px] text-emerald-300 font-bold block mb-1">إجمالي تكلفة الإيجار 💰</span>
+          <div id="teamLedgerTotalCost" class="text-xl font-black font-mono-numbers text-emerald-400">0 ₪</div>
+          <span class="text-[10px] text-slate-500 mt-0.5 block">التكلفة الإجمالية المستحقة</span>
+        </div>
+        <div>
+          <span class="text-[11px] text-amber-300 font-bold block mb-1">إجمالي الرحلات المسجلة 🚗</span>
+          <div id="teamLedgerTripsCount" class="text-xl font-black font-mono-numbers text-amber-400">0 رحلة</div>
+          <span class="text-[10px] text-slate-500 mt-0.5 block">كافة رحلات الفريق الموثقة</span>
+        </div>
+      </div>
+
+      <!-- Rule explanation note in modal -->
+      <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-[11px] text-slate-300 flex items-center gap-2">
+        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+        <span>يتم احتساب إيجار اليوم كاملاً على الفريق صاحب أول طلعة، والرحلات التالية بنفس اليوم غير مفوترة لتجنب التكرار.</span>
+      </div>
+
+      <!-- Team Days Table -->
+      <div class="space-y-2">
+        <h5 class="text-xs font-bold text-white flex items-center gap-1.5">
+          <i data-lucide="calendar-check" class="w-3.5 h-3.5 text-sky-400"></i>
+          <span>سجل الأيام والسيارات المحتسبة على هذا الفريق</span>
+        </h5>
+        <div class="overflow-x-auto max-h-60 overflow-y-auto rounded-xl border border-slate-800">
+          <table class="w-full text-right text-xs">
+            <thead class="bg-slate-900 sticky top-0 text-slate-300 border-b border-slate-800">
+              <tr>
+                <th class="p-2.5">التاريخ 📅</th>
+                <th class="p-2.5">المركبة 🚗</th>
+                <th class="p-2.5">السائق 👤</th>
+                <th class="p-2.5">الوجهة ومسار الرحلة 📍</th>
+                <th class="p-2.5 font-mono-numbers text-emerald-400">قيمة الإيجار المحتسب (₪) 🏷️</th>
+              </tr>
+            </thead>
+            <tbody id="teamLedgerTbody" class="divide-y divide-slate-800/60 text-slate-300"></tbody>
+          </table>
+        </div>
+        <div id="noTeamDaysNotice" class="p-4 text-center text-slate-500 hidden text-xs">
+          لا توجد أيام إيجار محتسبة على هذا الفريق حتى الآن.
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-3 border-t border-slate-800 text-xs">
+        <button type="button" onclick="window.print()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold flex items-center gap-1.5 transition-all">
+          <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+          <span>طباعة كشف حساب الفريق</span>
+        </button>
+        <button type="button" onclick="closeModal('teamLedgerModal')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold transition-all">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- Audit Trail & Activity Log Modal (سجل الرقابة ونظام الإشعارات) -->
+  <!-- ========================================== -->
+  <div id="auditLogsModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-5xl shadow-2xl p-4 sm:p-6 space-y-4 my-auto relative max-h-[92vh] flex flex-col">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800 shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+            <i data-lucide="shield-alert" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+              <span>سجل الرقابة والحركات الشامل</span>
+              <span class="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono-numbers">Audit Trail</span>
+            </h3>
+            <p class="text-xs text-slate-400">توثيق فوري لكافة حركات النظام: تنزيل وتصدير البيانات، الرحلات، السولار، المشتريات، وتسجيل الدخول</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="exportAuditLogsExcel()" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all" title="تصدير سجل الرقابة كاملاً إلى ملف إكسل">
+            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">تصدير Excel</span>
+          </button>
+          <button type="button" onclick="refreshAuditLogs()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all" title="تحديث السجل الآن">
+            <i data-lucide="refresh-cw" class="w-4 h-4" id="refreshAuditLogsIcon"></i>
+          </button>
+          <button type="button" onclick="closeModal('auditLogsModal')" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Ribbon -->
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 shrink-0">
+        <div class="p-2.5 rounded-2xl bg-slate-950/60 border border-slate-800">
+          <span class="text-[10px] text-slate-400 font-bold block">إجمالي الحركات 📜</span>
+          <span id="auditStatTotal" class="text-base font-black font-mono-numbers text-white">0</span>
+        </div>
+        <div class="p-2.5 rounded-2xl bg-slate-950/60 border border-slate-800">
+          <span class="text-[10px] text-emerald-400 font-bold block">تنزيل وتصدير البيانات 📥</span>
+          <span id="auditStatExports" class="text-base font-black font-mono-numbers text-emerald-400">0</span>
+        </div>
+        <div class="p-2.5 rounded-2xl bg-slate-950/60 border border-slate-800">
+          <span class="text-[10px] text-blue-400 font-bold block">حركات الرحلات 🚗</span>
+          <span id="auditStatTrips" class="text-base font-black font-mono-numbers text-blue-400">0</span>
+        </div>
+        <div class="p-2.5 rounded-2xl bg-slate-950/60 border border-slate-800">
+          <span class="text-[10px] text-amber-400 font-bold block">السولار والوقود ⛽</span>
+          <span id="auditStatFuel" class="text-base font-black font-mono-numbers text-amber-400">0</span>
+        </div>
+        <div class="p-2.5 rounded-2xl bg-slate-950/60 border border-slate-800 col-span-2 sm:col-span-1">
+          <span class="text-[10px] text-purple-400 font-bold block">المشتريات والتسعير 🛒</span>
+          <span id="auditStatProcure" class="text-base font-black font-mono-numbers text-purple-400">0</span>
+        </div>
+      </div>
+
+      <!-- Filters & Search Toolbar -->
+      <div class="bg-slate-950/80 p-3 rounded-2xl border border-slate-800 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
+        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto flex-1">
+          <!-- Action Type Filter -->
+          <div class="flex-1 sm:flex-none min-w-[140px]">
+            <select id="auditFilterType" onchange="filterAuditLogsTable()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+              <option value="all">كل أنواع الحركات</option>
+              <option value="DATA_EXPORT">📥 تصدير وتنزيل البيانات (Excel)</option>
+              <option value="TRIP_CREATE">🚗 بدء وتكليف رحلة</option>
+              <option value="TRIP_COMPLETE">🏁 إنهاء رحلة</option>
+              <option value="TRIP_DELETE">🗑️ حذف رحلة</option>
+              <option value="FUEL_LOG">⛽ تسجيل تعبئة سولار</option>
+              <option value="FUEL_DELETE">⛽ حذف سجل سولار</option>
+              <option value="PRICE_UPDATE">🏷️ تعديل تسعيرة إيجار سيارة</option>
+              <option value="INVOICE_CREATE">🛒 إضافة فاتورة مشتريات</option>
+              <option value="USER_CREATE">👥 إنشاء مستخدم/سائق</option>
+              <option value="PASSWORD_RESET">🔑 تغيير كلمة مرور</option>
+              <option value="LOGIN">🔐 تسجيل دخول</option>
+              <option value="LOGOUT">🚪 تسجيل خروج</option>
+              <option value="MODULE_OPEN">👁️ فتح شاشة/قسم</option>
+            </select>
+          </div>
+
+          <!-- User Filter -->
+          <div class="flex-1 sm:flex-none min-w-[130px]">
+            <select id="auditFilterUser" onchange="filterAuditLogsTable()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+              <option value="all">جميع المستخدمين</option>
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+          <!-- Quick Text Search -->
+          <div class="relative flex-1 min-w-[160px]">
+            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-500 absolute right-3 top-2.5"></i>
+            <input type="text" id="auditSearchInput" oninput="filterAuditLogsTable()" placeholder="بحث في التفاصيل أو الـ IP أو الجهاز..." class="w-full bg-slate-900 border border-slate-700 rounded-xl pr-9 pl-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="resetAuditFilters()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-colors">
+            إعادة الضبط
+          </button>
+        </div>
+      </div>
+
+      <!-- Audit Logs Table Container -->
+      <div class="overflow-x-auto overflow-y-auto flex-1 rounded-2xl border border-slate-800 bg-slate-950/40 min-h-[220px]">
+        <table class="w-full text-right text-xs">
+          <thead class="bg-slate-900 sticky top-0 text-slate-300 border-b border-slate-800 z-10">
+            <tr>
+              <th class="p-3 w-12 text-center">#</th>
+              <th class="p-3 whitespace-nowrap">الوقت والتاريخ ⏰</th>
+              <th class="p-3 whitespace-nowrap">المستخدم 👤</th>
+              <th class="p-3 whitespace-nowrap">نوع الحركة 🏷️</th>
+              <th class="p-3 min-w-[240px]">التفاصيل والبيان 📝</th>
+              <th class="p-3 whitespace-nowrap">الجهاز والمتصفح 💻</th>
+              <th class="p-3 whitespace-nowrap font-mono-numbers">عنوان IP 🌐</th>
+            </tr>
+          </thead>
+          <tbody id="auditLogsTableBody" class="divide-y divide-slate-800/60 text-slate-300">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+        <div id="noAuditLogsNotice" class="hidden p-8 text-center text-slate-500 text-xs">
+          لا توجد حركات مطابقة لمعايير البحث الحالية.
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-between pt-3 border-t border-slate-800 text-xs shrink-0">
+        <div class="text-slate-400 flex items-center gap-2">
+          <span>يتم الاحتفاظ بآخر <strong class="text-white font-mono-numbers">2,000</strong> حركة بشكل دائم ومؤمن في قاعدة البيانات.</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" id="adminClearAuditBtn" onclick="adminClearAuditLogs()" class="px-3.5 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 border border-rose-500/30 font-bold text-xs flex items-center gap-1.5 transition-all">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            <span>تفريغ السجل (المشرف العام)</span>
+          </button>
+          <button type="button" onclick="closeModal('auditLogsModal')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold transition-all">
+            إغلاق
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+  <!-- Main JavaScript Logic with Role-Based Permissions & Fleet Sync -->
+  <script src="app.js?v=6.0"></script>
+</body>
+</html>

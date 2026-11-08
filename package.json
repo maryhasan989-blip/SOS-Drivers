@@ -1,0 +1,17 @@
+{
+  "name": "triplog-pwa",
+  "version": "1.0.0",
+  "description": "تطبيق إدارة وسجل رحلات السائقين",
+  "main": "main.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "electron": "electron ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^45.2.2"
+  }
+}
